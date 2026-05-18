@@ -1,23 +1,32 @@
 import { useState, useEffect } from 'react';
+import { Package, Users, Tag, ShoppingCart, LogOut, Plus, Edit2, Trash2, CheckCircle, CakeSlice } from 'lucide-react';
 import axios from 'axios';
-import { Package, ShoppingBag, Check, Plus } from 'lucide-react';
 
-const BACKEND_URL = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001/api/shop'}/admin`;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001/api/shop';
 
 export default function Admin() {
+  const [activeTab, setActiveTab] = useState('orders');
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
-  const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'products'
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', description: '', image: '' });
+  const [promos, setPromos] = useState([]);
+  const [customers, setCustomers] = useState([]);
 
+  // Fetch data
   const fetchData = async () => {
     try {
-      const [ordRes, prodRes] = await Promise.all([
-        axios.get(`${BACKEND_URL}/orders`),
-        axios.get(`${BACKEND_URL}/products`)
-      ]);
-      setOrders(ordRes.data.data);
-      setProducts(prodRes.data.data);
+      if (activeTab === 'orders') {
+        const res = await axios.get(`${BACKEND_URL}/admin/orders`);
+        setOrders(res.data.data);
+      } else if (activeTab === 'products') {
+        const res = await axios.get(`${BACKEND_URL}/admin/products`);
+        setProducts(res.data.data);
+      } else if (activeTab === 'promos') {
+        const res = await axios.get(`${BACKEND_URL}/admin/promos`);
+        setPromos(res.data.data);
+      } else if (activeTab === 'customers') {
+        const res = await axios.get(`${BACKEND_URL}/admin/customers`);
+        setCustomers(res.data.data);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -25,152 +34,268 @@ export default function Admin() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 10000); // Polling 10s for new orders
+    const interval = setInterval(fetchData, 10000); // Auto refresh
     return () => clearInterval(interval);
-  }, []);
+  }, [activeTab]);
 
-  const confirmOrder = async (id) => {
+  // Actions
+  const handleConfirmOrder = async (id) => {
     try {
-      await axios.post(`${BACKEND_URL}/orders/${id}/confirm`);
-      alert('Đã xác nhận và đẩy đơn sang AloShipp!');
+      await axios.put(`${BACKEND_URL}/admin/orders/${id}/confirm`);
       fetchData();
+      alert('Đã xác nhận và đẩy đơn sang AloShipp!');
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi xác nhận đơn');
+      alert('Lỗi: ' + (err.response?.data?.message || err.message));
     }
   };
 
-  const addProduct = async (e) => {
+  const handleAddProduct = async (e) => {
     e.preventDefault();
+    const fd = new FormData(e.target);
+    const product = {
+      name: fd.get('name'),
+      price: Number(fd.get('price')),
+      image: fd.get('image'),
+      description: fd.get('description'),
+      isActive: true
+    };
     try {
-      await axios.post(`${BACKEND_URL}/products`, {
-        ...newProduct,
-        price: Number(newProduct.price)
-      });
-      setNewProduct({ name: '', price: '', description: '', image: '' });
+      await axios.post(`${BACKEND_URL}/admin/products`, product);
+      e.target.reset();
       fetchData();
-      alert('Đã thêm sản phẩm mới!');
     } catch (err) {
       alert('Lỗi thêm sản phẩm');
     }
   };
 
+  const handleAddPromo = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const promo = {
+      title: fd.get('title'),
+      content: fd.get('content'),
+      image: fd.get('image'),
+      isActive: true
+    };
+    try {
+      await axios.post(`${BACKEND_URL}/admin/promos`, promo);
+      e.target.reset();
+      fetchData();
+    } catch (err) {
+      alert('Lỗi thêm khuyến mãi');
+    }
+  };
+
+  const handleDeletePromo = async (id) => {
+    if (!window.confirm('Chắc chắn xoá bài đăng này?')) return;
+    try {
+      await axios.delete(`${BACKEND_URL}/admin/promos/${id}`);
+      fetchData();
+    } catch (err) {
+      alert('Lỗi xoá');
+    }
+  };
+
+  const menuItems = [
+    { id: 'orders', icon: ShoppingCart, label: 'Đơn Hàng' },
+    { id: 'products', icon: Package, label: 'Sản Phẩm' },
+    { id: 'promos', icon: Tag, label: 'Khuyến Mãi' },
+    { id: 'customers', icon: Users, label: 'Khách Hàng' },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#fafaf9] flex">
+    <div className="min-h-screen bg-stone-100 flex font-sans text-stone-800">
+      
       {/* Sidebar */}
-      <aside className="w-64 bg-stone-900 text-stone-300 flex flex-col">
-        <div className="p-6">
-          <h1 className="text-xl font-serif font-bold text-white tracking-tight">Le Petit Admin</h1>
+      <div className="w-64 bg-[#23140c] text-stone-300 flex flex-col hidden md:flex shrink-0">
+        <div className="p-6 mb-4 flex items-center gap-3 text-white">
+          <div className="w-10 h-10 bg-brand-500 rounded-lg flex items-center justify-center">
+            <CakeSlice size={20} className="text-white" />
+          </div>
+          <span className="text-xl font-serif font-bold tracking-wide">Le Petit</span>
         </div>
-        <nav className="flex-1 px-4 space-y-2 mt-4">
-          <button 
-            onClick={() => setActiveTab('orders')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${activeTab === 'orders' ? 'bg-brand-900 text-white' : 'hover:bg-stone-800 hover:text-white'}`}
-          >
-            <ShoppingBag size={18} /> Đơn đặt hàng
-          </button>
-          <button 
-            onClick={() => setActiveTab('products')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${activeTab === 'products' ? 'bg-brand-900 text-white' : 'hover:bg-stone-800 hover:text-white'}`}
-          >
-            <Package size={18} /> Menu Sản phẩm
-          </button>
+        
+        <nav className="flex-1 px-4 space-y-2">
+          {menuItems.map(item => (
+            <button 
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                activeTab === item.id 
+                ? 'bg-brand-600 text-white shadow-lg' 
+                : 'hover:bg-stone-800 hover:text-white'
+              }`}
+            >
+              <item.icon size={20} />
+              {item.label}
+            </button>
+          ))}
         </nav>
-      </aside>
+        
+        <div className="p-4 mt-auto">
+          <button className="w-full flex items-center gap-3 px-4 py-3 text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition-colors">
+            <LogOut size={20} />
+            Đăng xuất
+          </button>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 p-10 overflow-y-auto">
-        {activeTab === 'orders' ? (
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl font-serif font-medium text-stone-800 mb-8">Quản lý Đơn hàng</h2>
-            <div className="space-y-4">
-              {orders.map(order => (
-                <div key={order._id} className="bg-white border border-stone-200 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-lg text-stone-900">{order.customerName}</span>
-                      <span className="text-stone-500 font-medium">{order.customerPhone}</span>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Header */}
+        <header className="bg-white px-8 py-6 flex justify-between items-center shadow-sm sticky top-0 z-10">
+          <h1 className="text-2xl font-serif font-bold text-stone-900">
+            {menuItems.find(i => i.id === activeTab)?.label}
+          </h1>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-brand-200 flex items-center justify-center text-brand-900 font-bold">A</div>
+            <span className="font-medium">Admin</span>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="p-8 max-w-6xl mx-auto">
+          
+          {/* ORDERS TAB */}
+          {activeTab === 'orders' && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="grid grid-cols-1 gap-4">
+                {orders.map(order => (
+                  <div key={order._id} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="font-bold text-lg text-brand-900">{order.customerName}</span>
+                        <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold rounded-full">{order.customerPhone}</span>
+                        {order.status === 'PENDING' ? (
+                          <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Chờ Xác Nhận</span>
+                        ) : (
+                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle size={12}/> Đã Đẩy AloShipp</span>
+                        )}
+                      </div>
+                      <p className="text-stone-600 mb-2"><MapPin size={16} className="inline mr-1 text-stone-400" /> {order.deliveryAddress}</p>
+                      <div className="text-sm font-medium text-stone-500 space-y-1">
+                        {order.items.map((i, idx) => <div key={idx}>- {i.name} (x{i.quantity})</div>)}
+                      </div>
+                      {order.note && <p className="mt-2 text-sm text-brand-600 bg-brand-50 p-2 rounded">Ghi chú: {order.note}</p>}
+                    </div>
+                    <div className="flex flex-col items-end gap-3 w-full md:w-auto">
+                      <div className="text-xl font-bold text-stone-900">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
                       {order.status === 'PENDING' && (
-                        <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider rounded-md">Chờ xác nhận</span>
+                        <button 
+                          onClick={() => handleConfirmOrder(order._id)}
+                          className="w-full md:w-auto px-6 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-md"
+                        >
+                          Xác nhận & Giao
+                        </button>
                       )}
-                      {order.status === 'CONFIRMED' && (
-                        <span className="px-2.5 py-1 bg-green-100 text-green-800 text-xs font-bold uppercase tracking-wider rounded-md">Đã chuyển AloShipp</span>
-                      )}
-                    </div>
-                    <p className="text-stone-600">Giao đến: {order.deliveryAddress}</p>
-                    <p className="text-sm text-stone-500 italic">{order.note && `Ghi chú: ${order.note}`}</p>
-                    <div className="mt-4 pt-4 border-t border-stone-100">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="text-stone-700 text-sm">
-                          {item.quantity}x {item.name}
-                        </div>
-                      ))}
                     </div>
                   </div>
-                  
-                  <div className="flex flex-col items-end gap-4 min-w-[200px]">
-                    <div className="text-2xl font-serif font-medium text-brand-900">
-                      {order.totalAmount.toLocaleString('vi-VN')} ₫
-                    </div>
-                    {order.status === 'PENDING' && (
-                      <button 
-                        onClick={() => confirmOrder(order._id)}
-                        className="w-full px-6 py-3 bg-brand-900 hover:bg-stone-900 text-white rounded-xl font-medium tracking-wide transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Check size={18} /> Xác nhận & Đẩy đơn
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {orders.length === 0 && <p className="text-stone-500">Chưa có đơn hàng nào.</p>}
+                ))}
+                {orders.length === 0 && <div className="text-center py-10 text-stone-400">Chưa có đơn hàng nào.</div>}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="max-w-5xl mx-auto flex gap-10 items-start">
-            <div className="flex-1 space-y-4">
-              <h2 className="text-3xl font-serif font-medium text-stone-800 mb-8">Menu Cửa hàng</h2>
-              {products.map(prod => (
-                <div key={prod._id} className="bg-white border border-stone-200 p-4 rounded-xl flex gap-4 items-center shadow-sm">
-                  <div className="w-16 h-16 bg-stone-100 rounded-lg overflow-hidden shrink-0">
-                    {prod.image ? <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" /> : null}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-stone-800">{prod.name}</h4>
-                    <p className="text-sm text-stone-500 truncate">{prod.description}</p>
-                  </div>
-                  <div className="font-medium text-brand-700">{prod.price.toLocaleString('vi-VN')} ₫</div>
-                </div>
-              ))}
-            </div>
+          )}
 
-            {/* Add product form */}
-            <div className="w-80 bg-white p-6 rounded-2xl shadow-soft border border-stone-100 sticky top-10">
-              <h3 className="font-serif font-medium text-xl text-stone-800 mb-6">Thêm Bánh Mới</h3>
-              <form onSubmit={addProduct} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Tên bánh</label>
-                  <input type="text" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-2 focus:ring-brand-200 outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Giá (VNĐ)</label>
-                  <input type="number" required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-2 focus:ring-brand-200 outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Link Ảnh</label>
-                  <input type="url" value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})} className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-2 focus:ring-brand-200 outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Mô tả</label>
-                  <textarea rows="3" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-2 focus:ring-brand-200 outline-none resize-none"></textarea>
-                </div>
-                <button type="submit" className="w-full py-3 bg-stone-900 text-white rounded-lg font-medium tracking-wide flex items-center justify-center gap-2 hover:bg-brand-900 transition-colors">
-                  <Plus size={18} /> Thêm vào Menu
-                </button>
-              </form>
+          {/* PRODUCTS TAB */}
+          {activeTab === 'products' && (
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
+                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Plus size={20} className="text-brand-600" /> Thêm bánh mới</h3>
+                <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input name="name" type="text" placeholder="Tên bánh" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <input name="price" type="number" placeholder="Giá tiền (VNĐ)" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <input name="image" type="url" placeholder="Link ảnh (https://...)" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <input name="description" type="text" placeholder="Mô tả ngắn gọn" className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <button type="submit" className="md:col-span-2 py-3 bg-stone-900 text-white font-medium rounded-lg hover:bg-brand-900 transition-colors">Đăng sản phẩm</button>
+                </form>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map(p => (
+                  <div key={p._id} className="bg-white p-4 rounded-xl shadow-sm border border-stone-200/60 flex flex-col gap-3 group">
+                    <div className="w-full h-40 bg-stone-100 rounded-lg overflow-hidden relative">
+                      {p.image ? <img src={p.image} className="w-full h-full object-cover" /> : null}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-stone-800">{p.name}</h4>
+                      <div className="text-brand-600 font-medium">{p.price.toLocaleString('vi-VN')} ₫</div>
+                    </div>
+                    <div className="mt-auto flex gap-2">
+                      <button className="flex-1 py-2 bg-stone-100 text-stone-600 rounded-lg font-medium hover:bg-stone-200 transition flex justify-center items-center gap-2 text-sm"><Edit2 size={16}/> Sửa</button>
+                      <button className="flex-1 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition flex justify-center items-center gap-2 text-sm"><Trash2 size={16}/> Xóa</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+
+          {/* PROMOS TAB */}
+          {activeTab === 'promos' && (
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
+                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Tag size={20} className="text-brand-600" /> Đăng tin tức / Khuyến mãi</h3>
+                <form onSubmit={handleAddPromo} className="space-y-4">
+                  <input name="title" type="text" placeholder="Tiêu đề (VD: Tặng trà đào khi mua bánh)" required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <textarea name="content" rows="3" placeholder="Nội dung khuyến mãi..." required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 resize-none"></textarea>
+                  <input name="image" type="url" placeholder="Link ảnh (Banner)" className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <button type="submit" className="w-full py-3 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors">Đăng lên trang chủ</button>
+                </form>
+              </div>
+
+              <div className="space-y-4">
+                {promos.map(promo => (
+                  <div key={promo._id} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60 flex gap-6 items-start">
+                    {promo.image && <img src={promo.image} className="w-32 h-24 object-cover rounded-lg shrink-0" />}
+                    <div className="flex-1">
+                      <h4 className="font-bold text-lg text-stone-800">{promo.title}</h4>
+                      <p className="text-stone-600 text-sm mt-1 mb-2">{promo.content}</p>
+                      <span className="text-xs text-stone-400">Đăng lúc: {new Date(promo.createdAt).toLocaleString('vi-VN')}</span>
+                    </div>
+                    <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-stone-400 hover:text-red-500 transition-colors bg-stone-100 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* CUSTOMERS TAB */}
+          {activeTab === 'customers' && (
+            <div className="animate-in fade-in duration-500">
+              <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-stone-50 text-stone-600 font-medium border-b border-stone-200/60">
+                    <tr>
+                      <th className="px-6 py-4">Tên khách hàng</th>
+                      <th className="px-6 py-4">Số điện thoại</th>
+                      <th className="px-6 py-4">Tổng số đơn</th>
+                      <th className="px-6 py-4 text-right">Tổng chi tiêu</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {customers.map(c => (
+                      <tr key={c._id} className="hover:bg-stone-50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-stone-800">{c.name}</td>
+                        <td className="px-6 py-4 text-stone-600">{c.phone}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="px-3 py-1 bg-brand-100 text-brand-800 rounded-full font-bold text-xs">{c.totalOrders}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right font-bold text-brand-700">{c.totalSpent.toLocaleString('vi-VN')} ₫</td>
+                      </tr>
+                    ))}
+                    {customers.length === 0 && (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-8 text-center text-stone-400">Chưa có dữ liệu khách hàng.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
     </div>
   );
 }
