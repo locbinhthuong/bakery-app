@@ -49,13 +49,40 @@ export default function Admin() {
     }
   };
 
+  // Upload ảnh lên Backend
+  const uploadImageFile = async (file) => {
+    if (!file || file.size === 0) return null;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await axios.post(`${BACKEND_URL}/admin/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      // Trả về full URL
+      const baseUrl = BACKEND_URL.replace('/api/shop', '');
+      return baseUrl + res.data.url;
+    } catch (err) {
+      console.error('Lỗi upload ảnh:', err);
+      return null;
+    }
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+    
+    // Upload ảnh trước
+    const imageFile = fd.get('imageFile');
+    let imageUrl = '';
+    if (imageFile && imageFile.name) {
+      imageUrl = await uploadImageFile(imageFile);
+      if (!imageUrl) return alert('Lỗi tải ảnh lên máy chủ!');
+    }
+
     const product = {
       name: fd.get('name'),
       price: Number(fd.get('price')),
-      image: fd.get('image'),
+      image: imageUrl,
       description: fd.get('description'),
       isActive: true
     };
@@ -71,10 +98,17 @@ export default function Admin() {
   const handleAddPromo = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+
+    const imageFile = fd.get('imageFile');
+    let imageUrl = '';
+    if (imageFile && imageFile.name) {
+      imageUrl = await uploadImageFile(imageFile);
+    }
+
     const promo = {
       title: fd.get('title'),
       content: fd.get('content'),
-      image: fd.get('image'),
+      image: imageUrl,
       isActive: true
     };
     try {
@@ -204,7 +238,7 @@ export default function Admin() {
                 <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input name="name" type="text" placeholder="Tên bánh" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
                   <input name="price" type="number" placeholder="Giá tiền (VNĐ)" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
-                  <input name="image" type="url" placeholder="Link ảnh (https://...)" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <input name="imageFile" type="file" accept="image/*" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-100 file:text-brand-700 hover:file:bg-brand-200 cursor-pointer" />
                   <input name="description" type="text" placeholder="Mô tả ngắn gọn" className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
                   <button type="submit" className="md:col-span-2 py-3 bg-stone-900 text-white font-medium rounded-lg hover:bg-brand-900 transition-colors">Đăng sản phẩm</button>
                 </form>
@@ -213,8 +247,8 @@ export default function Admin() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map(p => (
                   <div key={p._id} className="bg-white p-4 rounded-xl shadow-sm border border-stone-200/60 flex flex-col gap-3 group">
-                    <div className="w-full h-40 bg-stone-100 rounded-lg overflow-hidden relative">
-                      {p.image ? <img src={p.image} className="w-full h-full object-cover" /> : null}
+                    <div className="w-full h-40 bg-white rounded-lg overflow-hidden relative flex items-center justify-center p-2 border border-stone-100">
+                      {p.image ? <img src={p.image} className="w-full h-full object-contain" /> : null}
                     </div>
                     <div>
                       <h4 className="font-bold text-stone-800">{p.name}</h4>
@@ -238,7 +272,7 @@ export default function Admin() {
                 <form onSubmit={handleAddPromo} className="space-y-4">
                   <input name="title" type="text" placeholder="Tiêu đề (VD: Tặng trà đào khi mua bánh)" required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
                   <textarea name="content" rows="3" placeholder="Nội dung khuyến mãi..." required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 resize-none"></textarea>
-                  <input name="image" type="url" placeholder="Link ảnh (Banner)" className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  <input name="imageFile" type="file" accept="image/*" className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-100 file:text-brand-700 hover:file:bg-brand-200 cursor-pointer" />
                   <button type="submit" className="w-full py-3 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors">Đăng lên trang chủ</button>
                 </form>
               </div>
@@ -246,7 +280,7 @@ export default function Admin() {
               <div className="space-y-4">
                 {promos.map(promo => (
                   <div key={promo._id} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60 flex gap-6 items-start">
-                    {promo.image && <img src={promo.image} className="w-32 h-24 object-cover rounded-lg shrink-0" />}
+                    {promo.image && <img src={promo.image} className="w-32 h-24 object-contain bg-stone-50 rounded-lg shrink-0 border border-stone-100" />}
                     <div className="flex-1">
                       <h4 className="font-bold text-lg text-stone-800">{promo.title}</h4>
                       <p className="text-stone-600 text-sm mt-1 mb-2">{promo.content}</p>

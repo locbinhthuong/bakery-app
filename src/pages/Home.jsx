@@ -151,7 +151,7 @@ export default function Home() {
             <div key={product._id} className="group flex flex-col items-start cursor-pointer">
               <div className="w-full aspect-[4/5] bg-stone-100 rounded-xl mb-6 overflow-hidden relative">
                 {product.image ? (
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 ease-out-expo group-hover:scale-105" />
+                  <img src={product.image} alt={product.name} className="w-full h-full object-contain p-4 transition-transform duration-700 ease-out-expo group-hover:scale-105 bg-white" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-stone-300">
                     <CakeSlice size={48} strokeWidth={1} />
@@ -265,8 +265,8 @@ export default function Home() {
                 <div className="space-y-6">
                   {cart.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-start gap-4">
-                      <div className="w-16 h-16 bg-stone-100 rounded-md overflow-hidden shrink-0">
-                        {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : null}
+                      <div className="w-16 h-16 bg-white rounded-md overflow-hidden shrink-0 border border-stone-100 p-1">
+                        {item.image ? <img src={item.image} className="w-full h-full object-contain" /> : null}
                       </div>
                       <div className="flex-1">
                         <div className="font-serif font-medium text-stone-800 leading-tight">{item.name}</div>
