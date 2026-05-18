@@ -6,6 +6,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001/a
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [promos, setPromos] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCheckout, setIsCheckout] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', address: '', note: '' });
@@ -20,6 +21,10 @@ export default function Home() {
   useEffect(() => {
     axios.get(`${BACKEND_URL}/products`)
       .then(res => setProducts(res.data.data))
+      .catch(err => console.error(err));
+      
+    axios.get(`${BACKEND_URL}/promos`)
+      .then(res => setPromos(res.data.data))
       .catch(err => console.error(err));
   }, []);
 
@@ -181,6 +186,37 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Promos Section */}
+      {promos.length > 0 && (
+        <section className="py-20 md:py-32 bg-stone-100/50">
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+              <div>
+                <span className="text-brand-600 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block">Tin tức & Sự kiện</span>
+                <h2 className="text-4xl md:text-5xl font-serif text-brand-900">Bản Tin Le Petit</h2>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {promos.map(promo => (
+                <div key={promo._id} className="group cursor-pointer">
+                  <div className="w-full aspect-video bg-stone-200 rounded-xl overflow-hidden mb-6">
+                    {promo.image ? (
+                      <img src={promo.image} className="w-full h-full object-contain bg-white transition-transform duration-700 ease-out-expo group-hover:scale-105" />
+                    ) : (
+                      <div className="w-full h-full bg-brand-900/5 flex items-center justify-center text-brand-900">Le Petit News</div>
+                    )}
+                  </div>
+                  <h3 className="text-2xl font-serif font-medium text-stone-900 mb-3 group-hover:text-brand-700 transition-colors">{promo.title}</h3>
+                  <p className="text-stone-600 line-clamp-3 leading-relaxed mb-4">{promo.content}</p>
+                  <span className="text-sm font-medium text-brand-600 uppercase tracking-widest flex items-center gap-2">Đọc tiếp <ArrowRight size={16} /></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Footer / Store info */}
       <footer id="cua-hang" className="bg-brand-900 text-brand-50 pt-20 pb-10">

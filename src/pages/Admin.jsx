@@ -67,6 +67,16 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm('Chắc chắn xoá bánh này?')) return;
+    try {
+      await axios.delete(`${BACKEND_URL}/admin/products/${id}`);
+      fetchData();
+    } catch (err) {
+      alert('Lỗi xoá bánh');
+    }
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -255,8 +265,7 @@ export default function Admin() {
                       <div className="text-brand-600 font-medium">{p.price.toLocaleString('vi-VN')} ₫</div>
                     </div>
                     <div className="mt-auto flex gap-2">
-                      <button className="flex-1 py-2 bg-stone-100 text-stone-600 rounded-lg font-medium hover:bg-stone-200 transition flex justify-center items-center gap-2 text-sm"><Edit2 size={16}/> Sửa</button>
-                      <button className="flex-1 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition flex justify-center items-center gap-2 text-sm"><Trash2 size={16}/> Xóa</button>
+                      <button onClick={() => handleDeleteProduct(p._id)} className="flex-1 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition flex justify-center items-center gap-2 text-sm"><Trash2 size={16}/> Xóa</button>
                     </div>
                   </div>
                 ))}
