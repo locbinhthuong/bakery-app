@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, ChevronRight, CakeSlice, MapPin, Phone, Mail, ArrowRight, Instagram, Facebook } from 'lucide-react';
+import { ShoppingBag, ChevronRight, CakeSlice, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001/api/shop';
@@ -197,8 +197,8 @@ export default function Home() {
                 Đánh thức những nốt hương đặc sản của nông sản Việt Nam qua từng mẻ bánh thủ công.
               </p>
               <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center hover:bg-[#FDFBF7] hover:text-brand-900 transition-colors"><Facebook size={18} /></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center hover:bg-[#FDFBF7] hover:text-brand-900 transition-colors"><Instagram size={18} /></a>
+                <a href="#" className="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center hover:bg-[#FDFBF7] hover:text-brand-900 transition-colors font-bold text-sm">FB</a>
+                <a href="#" className="w-10 h-10 rounded-full bg-brand-800 flex items-center justify-center hover:bg-[#FDFBF7] hover:text-brand-900 transition-colors font-bold text-sm">IG</a>
               </div>
             </div>
             
