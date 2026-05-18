@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingBag, ChevronRight, CakeSlice, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001/api/shop';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://api.aloshipp.com/api/shop';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
