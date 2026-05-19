@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Users, Tag, ShoppingCart, LogOut, Plus, Edit2, Trash2, CheckCircle, CakeSlice } from 'lucide-react';
+import { Package, Users, Tag, ShoppingCart, LogOut, Plus, Edit2, Trash2, CheckCircle, CakeSlice, MapPin } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://api.aloshipp.com/api/shop';
