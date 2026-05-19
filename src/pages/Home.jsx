@@ -76,7 +76,7 @@ export default function Home() {
             </a>
             <div className="hidden lg:flex items-center gap-8 text-sm font-medium tracking-wide text-stone-600 uppercase">
               <a href="#san-pham" className="hover:text-brand-900 transition-colors">Sản phẩm</a>
-              <a href="#cau-chuyen" className="hover:text-brand-900 transition-colors">Câu chuyện</a>
+              <a href="#tin-tuc" className="hover:text-brand-900 transition-colors">Tin tức</a>
               <a href="#cua-hang" className="hover:text-brand-900 transition-colors">Cửa hàng</a>
             </div>
           </div>
@@ -98,49 +98,30 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <header className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center text-center">
-        <span className="text-brand-600 font-semibold tracking-[0.2em] uppercase text-xs md:text-sm mb-6">Chuyện Lò Nướng</span>
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-brand-900 tracking-tight leading-[1.1] text-balance mb-8">
-          Hương Vị Đặc Sản,<br />Tinh Hoa Nguyên Bản.
-        </h1>
-        <p className="text-lg md:text-xl text-stone-600 max-w-2xl text-balance leading-relaxed">
-          Le Petit luôn trân quý, nâng niu những giá trị mộc mạc nhất. Mỗi mẻ bánh ra lò là sự đồng điệu với thiên nhiên, với nguyên liệu chắt chiu từ những nông trại thuần khiết nhất Việt Nam.
-        </p>
-      </header>
-
-      {/* Brand Story (Editorial Layout) */}
-      <section id="cau-chuyen" className="py-20 md:py-32 bg-stone-100/50">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="aspect-[4/5] bg-stone-200 rounded-2xl overflow-hidden relative group">
-            <img 
-              src="https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2072&auto=format&fit=crop" 
-              alt="Artisan baking" 
-              className="w-full h-full object-cover transition-transform duration-1000 ease-out-expo group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-brand-900/10 group-hover:bg-transparent transition-colors duration-1000"></div>
-          </div>
-          <div>
-            <h2 className="text-3xl md:text-5xl font-serif text-brand-900 mb-8 leading-tight">
-              Sứ mệnh đánh thức<br />hương vị thủ công.
-            </h2>
-            <div className="space-y-6 text-stone-600 text-lg leading-relaxed">
-              <p>
-                Từ những hạt lúa mì trĩu bông đến những giọt bơ vàng óng, chúng tôi tìm kiếm sự hoàn hảo trong từng nguyên liệu. Không công nghiệp, không hối hả.
-              </p>
-              <p>
-                Một chặng đường dài luôn chờ phía trước, Le Petit sẵn sàng viết tiếp câu chuyện <strong>Hương Vị Đặc Sản - Nguyên Bản - Thủ Công</strong> đầy cảm hứng, để mang tới cho bạn những trải nghiệm ẩm thực chạm đến cảm xúc.
-              </p>
-            </div>
-            <button className="mt-10 flex items-center gap-3 text-brand-800 font-medium tracking-wide uppercase hover:gap-5 transition-all duration-300">
-              Khám phá thêm <ArrowRight size={18} />
+      {/* Compact App Header / Banner */}
+      <header className="relative pt-24 md:pt-32 pb-6 md:pb-12 px-4 md:px-12 max-w-7xl mx-auto">
+        <div className="w-full bg-brand-900 rounded-3xl overflow-hidden relative flex items-center justify-between p-6 md:p-16 shadow-lg border border-brand-800">
+          <div className="relative z-10 max-w-lg">
+            <span className="inline-block px-3 py-1 bg-white/20 text-white rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider mb-3 md:mb-4 backdrop-blur-md">Chào bạn,</span>
+            <h1 className="text-2xl md:text-5xl font-serif text-white leading-tight mb-2 md:mb-4">
+              Bánh mới ra lò,<br />thơm ngon mỗi ngày.
+            </h1>
+            <p className="text-brand-100 mb-4 md:mb-8 text-xs md:text-base opacity-90 line-clamp-2 md:line-clamp-none">
+              Mẻ bánh nóng hổi vừa ra lò đã sẵn sàng. Đặt ngay để thưởng thức hương vị đặc sản tinh hoa.
+            </p>
+            <button 
+              onClick={() => document.getElementById('san-pham').scrollIntoView({ behavior: 'smooth' })} 
+              className="px-5 py-2.5 md:px-8 md:py-4 bg-white text-brand-900 font-bold text-sm md:text-base rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:scale-105 transition-transform"
+            >
+              Mua bánh ngay
             </button>
           </div>
+          <div className="absolute right-0 top-0 bottom-0 w-2/3 md:w-1/2 opacity-30 md:opacity-50 bg-[url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay [mask-image:linear-gradient(to_right,transparent,black)] md:[mask-image:linear-gradient(to_right,transparent_20%,black)]"></div>
         </div>
-      </section>
+      </header>
 
       {/* Products Section */}
-      <section id="san-pham" className="py-24 md:py-32 max-w-7xl mx-auto px-6 md:px-12">
+      <section id="san-pham" className="py-6 md:py-16 max-w-7xl mx-auto px-4 md:px-12">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div>
             <span className="text-brand-600 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block">Thực đơn hôm nay</span>
@@ -197,7 +178,7 @@ export default function Home() {
 
       {/* Promos Section */}
       {promos.length > 0 && (
-        <section className="py-20 md:py-32 bg-stone-100/50">
+        <section id="tin-tuc" className="py-16 md:py-32 bg-stone-100/50">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
               <div>
@@ -371,7 +352,7 @@ export default function Home() {
           <Menu size={22} strokeWidth={2} />
           <span className="text-[10px] font-bold uppercase tracking-wider">Menu</span>
         </a>
-        <a href="#cau-chuyen" className="flex flex-col items-center gap-1.5 text-stone-400 hover:text-brand-900 transition-colors w-16">
+        <a href="#tin-tuc" className="flex flex-col items-center gap-1.5 text-stone-400 hover:text-brand-900 transition-colors w-16">
           <Gift size={22} strokeWidth={2} />
           <span className="text-[10px] font-bold uppercase tracking-wider">Tin tức</span>
         </a>
