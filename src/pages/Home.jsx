@@ -11,6 +11,9 @@ export default function Home() {
   const [isCheckout, setIsCheckout] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', address: '', note: '' });
   const [scrolled, setScrolled] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState(null);
 
   // New states for Auth and Profile
   const [customer, setCustomer] = useState(null);
@@ -63,6 +66,23 @@ export default function Home() {
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0);
+
+  // Xóa mã giảm giá nếu giỏ hàng trống hoặc tổng tiền thay đổi làm sai lệch số tiền giảm (để đơn giản thì chỉ cần tính lại khi thay đổi)
+  useEffect(() => {
+    if (cart.length === 0) setAppliedPromo(null);
+  }, [cart]);
+
+  const applyDiscount = async () => {
+    if (!discountCode) return alert('Vui lòng nhập mã giảm giá');
+    try {
+      const res = await axios.post(`${BACKEND_URL}/promos/validate`, { code: discountCode.toUpperCase(), totalAmount });
+      setAppliedPromo(res.data.data);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Mã giảm giá không hợp lệ');
+      setAppliedPromo(null);
+    }
+  };
 
   const handleCheckout = async (e) => {
     e.preventDefault();
@@ -75,10 +95,15 @@ export default function Home() {
         deliveryAddress: formData.address,
         note: formData.note,
         items: cart.map(i => ({ productId: i._id, name: i.name, price: i.price, quantity: i.quantity })),
-        totalAmount
+        subTotal: totalAmount,
+        discountCode: appliedPromo ? appliedPromo.code : '',
+        discountAmount: appliedPromo ? appliedPromo.discountAmount : 0,
+        totalAmount: finalAmount
       });
       alert('Tuyệt vời! Đơn hàng của bạn đã được ghi nhận.');
       setCart([]);
+      setAppliedPromo(null);
+      setDiscountCode('');
       setIsCheckout(false);
     } catch (err) {
       alert('Lỗi đặt hàng, vui lòng thử lại.');
@@ -141,9 +166,9 @@ export default function Home() {
               <span className="text-2xl font-serif font-bold text-brand-900 tracking-tight">Le Petit</span>
             </a>
             <div className="hidden lg:flex items-center gap-8 text-sm font-medium tracking-wide text-stone-600 uppercase">
-              <a href="#san-pham" className="hover:text-brand-900 transition-colors">Sản phẩm</a>
-              <a href="#tin-tuc" className="hover:text-brand-900 transition-colors">Tin tức</a>
-              <a href="#cua-hang" className="hover:text-brand-900 transition-colors">Cửa hàng</a>
+              <button onClick={() => setActiveTab('home')} className={`transition-colors ${activeTab === 'home' ? 'text-brand-900 font-bold' : 'hover:text-brand-900'}`}>Trang chủ</button>
+              <button onClick={() => setActiveTab('menu')} className={`transition-colors ${activeTab === 'menu' ? 'text-brand-900 font-bold' : 'hover:text-brand-900'}`}>Tất cả sản phẩm</button>
+              <button onClick={() => { setActiveTab('home'); setTimeout(() => document.getElementById('tin-tuc')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="hover:text-brand-900 transition-colors">Khuyến mãi</button>
             </div>
           </div>
           
@@ -190,28 +215,30 @@ export default function Home() {
       </nav>
 
       {/* Compact App Header / Banner */}
-      <header className="relative pt-24 md:pt-32 pb-6 md:pb-12 px-4 md:px-12 max-w-7xl mx-auto">
-        <div className="w-full bg-brand-900 rounded-3xl overflow-hidden relative flex items-center justify-between p-6 md:p-16 shadow-lg border border-brand-800">
-          <div className="relative z-10 max-w-lg">
-            <span className="inline-block px-3 py-1 bg-white/20 text-white rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider mb-3 md:mb-4 backdrop-blur-md">
-              {customer ? `Chào ${customer.name},` : 'Chào bạn,'}
-            </span>
-            <h1 className="text-2xl md:text-5xl font-serif text-white leading-tight mb-2 md:mb-4">
-              Bánh mới ra lò,<br />thơm ngon mỗi ngày.
-            </h1>
-            <p className="text-brand-100 mb-4 md:mb-8 text-xs md:text-base opacity-90 line-clamp-2 md:line-clamp-none">
-              Mẻ bánh nóng hổi vừa ra lò đã sẵn sàng. Đặt ngay để thưởng thức hương vị đặc sản tinh hoa.
-            </p>
-            <button 
-              onClick={() => document.getElementById('san-pham').scrollIntoView({ behavior: 'smooth' })} 
-              className="px-5 py-2.5 md:px-8 md:py-4 bg-white text-brand-900 font-bold text-sm md:text-base rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:scale-105 transition-transform"
-            >
-              Mua bánh ngay
-            </button>
+      {activeTab === 'home' && (
+        <header className="relative pt-24 md:pt-32 pb-6 md:pb-12 px-4 md:px-12 max-w-7xl mx-auto">
+          <div className="w-full bg-brand-900 rounded-3xl overflow-hidden relative flex items-center justify-between p-6 md:p-16 shadow-lg border border-brand-800">
+            <div className="relative z-10 max-w-lg">
+              <span className="inline-block px-3 py-1 bg-white/20 text-white rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider mb-3 md:mb-4 backdrop-blur-md">
+                {customer ? `Chào ${customer.name},` : 'Chào bạn,'}
+              </span>
+              <h1 className="text-2xl md:text-5xl font-serif text-white leading-tight mb-2 md:mb-4">
+                Bánh mới ra lò,<br />thơm ngon mỗi ngày.
+              </h1>
+              <p className="text-brand-100 mb-4 md:mb-8 text-xs md:text-base opacity-90 line-clamp-2 md:line-clamp-none">
+                Mẻ bánh nóng hổi vừa ra lò đã sẵn sàng. Đặt ngay để thưởng thức hương vị đặc sản tinh hoa.
+              </p>
+              <button 
+                onClick={() => setActiveTab('menu')} 
+                className="px-5 py-2.5 md:px-8 md:py-4 bg-white text-brand-900 font-bold text-sm md:text-base rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:scale-105 transition-transform"
+              >
+                Xem thực đơn ngay
+              </button>
+            </div>
+            <div className="absolute right-0 top-0 bottom-0 w-2/3 md:w-1/2 opacity-30 md:opacity-50 bg-[url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay [mask-image:linear-gradient(to_right,transparent,black)] md:[mask-image:linear-gradient(to_right,transparent_20%,black)]"></div>
           </div>
-          <div className="absolute right-0 top-0 bottom-0 w-2/3 md:w-1/2 opacity-30 md:opacity-50 bg-[url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay [mask-image:linear-gradient(to_right,transparent,black)] md:[mask-image:linear-gradient(to_right,transparent_20%,black)]"></div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Products Section */}
       <section id="san-pham" className="py-6 md:py-16 max-w-7xl mx-auto px-4 md:px-12">
@@ -220,13 +247,13 @@ export default function Home() {
             <span className="text-brand-600 font-semibold tracking-[0.2em] uppercase text-xs mb-2 md:mb-3 block">Thực đơn hôm nay</span>
             <h2 className="text-3xl md:text-5xl font-serif text-brand-900">Các Dòng Bánh Nổi Bật</h2>
           </div>
-          <button className="text-stone-500 hover:text-brand-900 font-medium flex items-center gap-2 transition-colors text-sm md:text-base">
+          <button onClick={() => setActiveTab('menu')} className="text-stone-500 hover:text-brand-900 font-medium flex items-center gap-2 transition-colors text-sm md:text-base">
             Xem tất cả <ChevronRight size={18} />
           </button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-10 md:gap-x-8 md:gap-y-16">
-          {products.map((product) => (
+          {(activeTab === 'home' ? products.slice(0, 4) : products).map((product) => (
             <div key={product._id} className="group flex flex-col items-start cursor-pointer w-full">
               <div className="w-full aspect-square md:aspect-[4/5] bg-stone-100 rounded-2xl mb-4 md:mb-6 overflow-hidden relative shadow-sm">
                 {product.image ? (
@@ -270,7 +297,7 @@ export default function Home() {
       </section>
 
       {/* Promos Section */}
-      {promos.length > 0 && (
+      {activeTab === 'home' && promos.length > 0 && (
         <section id="tin-tuc" className="py-16 md:py-32 bg-stone-100/50">
           <div className="max-w-7xl mx-auto px-4 md:px-12">
             <div className="flex flex-col md:flex-row justify-between items-end mb-8 md:mb-16 gap-4 md:gap-6">
@@ -292,7 +319,16 @@ export default function Home() {
                   </div>
                   <h3 className="text-xl md:text-2xl font-serif font-medium text-stone-900 mb-2 md:mb-3 group-hover:text-brand-700 transition-colors line-clamp-2">{promo.title}</h3>
                   <p className="text-sm md:text-base text-stone-600 line-clamp-2 md:line-clamp-3 leading-relaxed mb-4">{promo.content}</p>
-                  <span className="text-xs md:text-sm font-bold text-brand-600 uppercase tracking-widest flex items-center gap-2">Đọc tiếp <ArrowRight size={16} /></span>
+                  {promo.code ? (
+                    <button 
+                      onClick={() => { navigator.clipboard.writeText(promo.code); alert('Đã copy mã: ' + promo.code); }}
+                      className="mt-2 w-fit bg-brand-100 text-brand-800 border border-brand-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-brand-200 transition-colors"
+                    >
+                      <Gift size={16} /> Nhận mã: {promo.code}
+                    </button>
+                  ) : (
+                    <span className="text-xs md:text-sm font-bold text-brand-600 uppercase tracking-widest flex items-center gap-2">Đọc tiếp <ArrowRight size={16} /></span>
+                  )}
                 </div>
               ))}
             </div>
@@ -399,16 +435,40 @@ export default function Home() {
                       </div>
                     </div>
                   ))}
-                  <div className="pt-6 border-t border-stone-200/60 flex justify-between items-center text-xl font-serif font-medium text-brand-900">
-                    <span>Tổng cộng</span>
-                    <span>{totalAmount.toLocaleString('vi-VN')} ₫</span>
+                  <div className="pt-4 space-y-3">
+                    <div className="flex justify-between items-center text-stone-600 text-sm">
+                      <span>Tạm tính</span>
+                      <span>{totalAmount.toLocaleString('vi-VN')} ₫</span>
+                    </div>
+                    {appliedPromo && (
+                      <div className="flex justify-between items-center text-green-600 text-sm font-medium bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                        <span>Đã giảm ({appliedPromo.code})</span>
+                        <span>-{appliedPromo.discountAmount.toLocaleString('vi-VN')} ₫</span>
+                      </div>
+                    )}
+                    <div className="pt-3 border-t border-stone-200/60 flex justify-between items-center text-xl font-serif font-medium text-brand-900">
+                      <span>Tổng cộng</span>
+                      <span>{finalAmount.toLocaleString('vi-VN')} ₫</span>
+                    </div>
                   </div>
                 </div>
               )}
 
               {cart.length > 0 && (
-                <form onSubmit={handleCheckout} className="space-y-4 pt-8">
-                  <h3 className="font-medium text-stone-800 mb-4 tracking-wide">THÔNG TIN GIAO HÀNG</h3>
+                <form onSubmit={handleCheckout} className="space-y-4 pt-4 border-t border-stone-200/60">
+                  <h3 className="font-medium text-stone-800 mb-2 tracking-wide uppercase text-sm">Mã giảm giá</h3>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" placeholder="Nhập mã giảm giá..."
+                      className="flex-1 px-4 py-3 bg-stone-50 border border-stone-200 focus:bg-white focus:border-brand-500 rounded-xl outline-none transition-colors uppercase"
+                      value={discountCode} onChange={e => setDiscountCode(e.target.value)}
+                    />
+                    <button type="button" onClick={applyDiscount} className="px-6 bg-brand-100 text-brand-800 font-bold rounded-xl hover:bg-brand-200 transition-colors">
+                      Áp dụng
+                    </button>
+                  </div>
+                  
+                  <h3 className="font-medium text-stone-800 mt-6 mb-4 tracking-wide uppercase text-sm border-t border-stone-200/60 pt-6">Thông tin giao hàng</h3>
                   <input 
                     type="text" placeholder="Tên người nhận" required
                     className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-brand-500 rounded-xl outline-none transition-colors"
@@ -548,6 +608,26 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-stone-200 flex justify-around items-end pb-6 pt-3 px-2 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1.5 w-[20%] transition-colors ${activeTab === 'home' ? 'text-brand-900' : 'text-stone-400 hover:text-brand-900'}`}>
+          <HomeIcon size={22} strokeWidth={activeTab === 'home' ? 2.5 : 2} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Trang chủ</span>
+        </button>
+        <button onClick={() => setActiveTab('menu')} className={`flex flex-col items-center gap-1.5 w-[20%] transition-colors ${activeTab === 'menu' ? 'text-brand-900' : 'text-stone-400 hover:text-brand-900'}`}>
+          <Menu size={22} strokeWidth={activeTab === 'menu' ? 2.5 : 2} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Menu</span>
+        </button>
+        <button onClick={() => { setActiveTab('home'); setTimeout(() => document.getElementById('tin-tuc')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="flex flex-col items-center gap-1.5 w-[20%] text-stone-400 hover:text-brand-900 transition-colors">
+          <Gift size={22} strokeWidth={2} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Khuyến mãi</span>
+        </button>
+        <button onClick={() => { if(customer) setShowProfileModal(true); else setShowAuthModal(true); }} className="flex flex-col items-center gap-1.5 w-[20%] text-stone-400 hover:text-brand-900 transition-colors">
+          <User size={22} strokeWidth={2} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Tài khoản</span>
+        </button>
+      </div>
 
     </div>
   );

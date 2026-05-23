@@ -131,6 +131,9 @@ export default function Admin() {
       title: fd.get('title'),
       content: fd.get('content'),
       image: imageUrl,
+      code: fd.get('code') || '',
+      discountType: fd.get('discountType') || 'NONE',
+      discountValue: Number(fd.get('discountValue')) || 0,
       isActive: true
     };
     try {
@@ -235,6 +238,11 @@ export default function Admin() {
                       <div className="text-sm font-medium text-stone-500 mb-3 line-clamp-1">
                         {order.items.reduce((sum, i) => sum + i.quantity, 0)} sản phẩm: {order.items.map(i => i.name).join(', ')}
                       </div>
+                      {order.discountCode && (
+                        <div className="text-sm font-bold text-green-600 mb-2 bg-green-50 px-2 py-1 rounded w-fit">
+                          Mã dùng: {order.discountCode} (-{order.discountAmount.toLocaleString('vi-VN')} ₫)
+                        </div>
+                      )}
                       <button onClick={() => setSelectedOrder(order)} className="text-brand-600 hover:text-brand-800 text-sm font-bold flex items-center gap-1.5 bg-brand-50 px-3 py-1.5 rounded-lg w-fit transition-colors">
                         <Eye size={16} /> Xem chi tiết
                       </button>
@@ -299,6 +307,16 @@ export default function Admin() {
                 <form onSubmit={handleAddPromo} className="space-y-4">
                   <input name="title" type="text" placeholder="Tiêu đề (VD: Tặng trà đào khi mua bánh)" required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
                   <textarea name="content" rows="3" placeholder="Nội dung khuyến mãi..." required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 resize-none"></textarea>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-stone-200 p-4 rounded-xl bg-stone-50/50">
+                    <div className="md:col-span-3 text-sm font-bold text-stone-700 uppercase tracking-wider">Thiết lập mã giảm giá (Tùy chọn)</div>
+                    <input name="code" type="text" placeholder="Mã (VD: GIAM10K)" className="w-full px-4 py-2 bg-white border border-stone-200 rounded-lg outline-none focus:border-brand-500 uppercase" />
+                    <select name="discountType" className="w-full px-4 py-2 bg-white border border-stone-200 rounded-lg outline-none focus:border-brand-500">
+                      <option value="NONE">Không giảm giá</option>
+                      <option value="FIXED">Giảm số tiền cố định</option>
+                      <option value="PERCENT">Giảm theo %</option>
+                    </select>
+                    <input name="discountValue" type="number" placeholder="Mức giảm (VD: 10000 hoặc 10)" className="w-full px-4 py-2 bg-white border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                  </div>
                   <input name="imageFile" type="file" accept="image/*" className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-100 file:text-brand-700 hover:file:bg-brand-200 cursor-pointer" />
                   <button type="submit" className="w-full py-3 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors">Đăng lên trang chủ</button>
                 </form>
@@ -311,7 +329,12 @@ export default function Admin() {
                     <div className="flex-1">
                       <h4 className="font-bold text-lg text-stone-800">{promo.title}</h4>
                       <p className="text-stone-600 text-sm mt-1 mb-2">{promo.content}</p>
-                      <span className="text-xs text-stone-400">Đăng lúc: {new Date(promo.createdAt).toLocaleString('vi-VN')}</span>
+                      {promo.code && (
+                        <div className="inline-block bg-brand-100 text-brand-800 font-bold px-3 py-1 rounded-md text-sm mb-2 border border-brand-200">
+                          Mã: {promo.code} (-{promo.discountType === 'PERCENT' ? `${promo.discountValue}%` : `${promo.discountValue.toLocaleString('vi-VN')}đ`})
+                        </div>
+                      )}
+                      <div className="text-xs text-stone-400">Đăng lúc: {new Date(promo.createdAt).toLocaleString('vi-VN')}</div>
                     </div>
                     <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-stone-400 hover:text-red-500 transition-colors bg-stone-100 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
                   </div>
@@ -429,9 +452,21 @@ export default function Admin() {
                       ))}
                     </tbody>
                   </table>
-                  <div className="bg-stone-50 p-4 flex justify-between items-center border-t border-stone-200">
-                    <span className="font-bold text-stone-800 uppercase tracking-wide">Tổng cộng</span>
-                    <span className="text-2xl font-bold text-brand-700">{selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
+                  <div className="bg-stone-50 p-4 flex flex-col gap-2 border-t border-stone-200">
+                    <div className="flex justify-between items-center text-stone-600">
+                      <span>Tạm tính</span>
+                      <span>{selectedOrder.subTotal ? selectedOrder.subTotal.toLocaleString('vi-VN') : selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
+                    </div>
+                    {selectedOrder.discountCode && (
+                      <div className="flex justify-between items-center text-green-600 font-medium">
+                        <span>Mã giảm giá ({selectedOrder.discountCode})</span>
+                        <span>-{selectedOrder.discountAmount.toLocaleString('vi-VN')} ₫</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center font-bold text-stone-800 uppercase tracking-wide mt-2 pt-2 border-t border-stone-200">
+                      <span>Tổng cộng</span>
+                      <span className="text-2xl font-bold text-brand-700">{selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
+                    </div>
                   </div>
                 </div>
               </div>
