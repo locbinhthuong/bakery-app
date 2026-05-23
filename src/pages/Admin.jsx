@@ -537,10 +537,9 @@ export default function Admin() {
           {/* ===================== SETTINGS TAB ===================== */}
           {activeTab === 'settings' && settings && (
             <div className="animate-in fade-in duration-500 max-w-4xl mx-auto space-y-6">
-              <h2 className="text-2xl font-bold mb-6">Cài đặt Cửa hàng & Vận chuyển</h2>
+              <h2 className="text-2xl font-bold mb-6">Vị trí lấy hàng (Dành cho Shipper)</h2>
               <form onSubmit={handleSaveSettings} className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
                 <div className="mb-6">
-                  <h3 className="font-bold text-lg mb-2">Vị trí cửa hàng</h3>
                   <p className="text-sm text-stone-500 mb-4">Ghim vị trí chính xác của tiệm bánh để hệ thống AloShipp lấy hàng.</p>
                   <div className="h-64 w-full rounded-xl overflow-hidden border border-stone-200 z-0 relative">
                     <MapContainer center={[settings.storeLocation.lat, settings.storeLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
@@ -553,14 +552,7 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 mb-6">
-                  <div>
-                    <label className="text-sm font-bold text-stone-600 block mb-2">Giới hạn giao hàng (Max Km)</label>
-                    <input name="maxDeliveryKm" type="number" defaultValue={settings.maxDeliveryKm} required className="w-full px-4 py-2 border rounded-lg" />
-                  </div>
-                </div>
-                
-                <button type="submit" className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Lưu cài đặt</button>
+                <button type="submit" className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Lưu Tọa Độ</button>
               </form>
             </div>
           )}
