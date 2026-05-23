@@ -129,27 +129,9 @@ export default function CustomerLayout() {
     const lat2 = customerLocation.lat;
     const lon2 = customerLocation.lng;
     
-    const R = 6371; 
-    const dLat = (lat2 - lat1) * (Math.PI / 180);  
-    const dLon = (lon2 - lon1) * (Math.PI / 180); 
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2); 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
-    const distanceKm = R * c; 
-
-    if (distanceKm <= settings.maxDeliveryKm) {
-      if (distanceKm <= settings.shippingBaseKm) {
-        previewShippingFee = settings.shippingBaseFee;
-      } else {
-        const extraKm = distanceKm - settings.shippingBaseKm;
-        previewShippingFee = settings.shippingBaseFee + (extraKm * settings.shippingExtraFeePerKm);
-      }
-    }
-  }
-
-  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0) + previewShippingFee;
+  const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0);
 
   useEffect(() => {
     if (cart.length === 0) setAppliedPromo(null);
@@ -188,7 +170,7 @@ export default function CustomerLayout() {
       setAppliedPromo(null);
       setDiscountCode('');
       setIsCheckout(false);
-      navigate('/orders'); // Navigate to tracking page after successful order
+      navigate('/menu'); 
     } catch (err) {
       alert('Lỗi đặt hàng, vui lòng thử lại.');
     }
@@ -345,12 +327,6 @@ export default function CustomerLayout() {
                         <span>-{appliedPromo.discountAmount.toLocaleString('vi-VN')} ₫</span>
                       </div>
                     )}
-                    {previewShippingFee > 0 && (
-                      <div className="flex justify-between items-center text-stone-600 text-sm font-medium">
-                        <span>Phí giao hàng</span>
-                        <span>+{previewShippingFee.toLocaleString('vi-VN')} ₫</span>
-                      </div>
-                    )}
                     <div className="pt-3 border-t border-brand-100/50 flex justify-between items-center text-lg font-bold text-stone-900">
                       <span>Tổng cộng</span>
                       <span className="text-brand-600 text-xl">{finalAmount.toLocaleString('vi-VN')} ₫</span>
@@ -474,9 +450,9 @@ export default function CustomerLayout() {
           <Ticket size={24} strokeWidth={location.pathname === '/promos' ? 2.5 : 2} fill={location.pathname === '/promos' ? 'currentColor' : 'none'} />
           <span className="text-[10px] font-bold">Ưu đãi</span>
         </Link>
-        <Link to="/orders" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/orders' ? 'text-brand-900' : 'text-brand-800'}`}>
-          <LayoutGrid size={24} strokeWidth={location.pathname === '/orders' ? 2.5 : 2} fill={location.pathname === '/orders' ? 'currentColor' : 'none'} />
-          <span className="text-[10px] font-bold">Đơn hàng</span>
+        <Link to="/profile" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/profile' ? 'text-brand-900' : 'text-brand-800'}`}>
+          <LayoutGrid size={24} strokeWidth={location.pathname === '/profile' ? 2.5 : 2} fill={location.pathname === '/profile' ? 'currentColor' : 'none'} />
+          <span className="text-[10px] font-bold">Khác</span>
         </Link>
       </div>
     </div>

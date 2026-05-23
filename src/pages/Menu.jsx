@@ -1,10 +1,34 @@
 import { useOutletContext } from 'react-router-dom';
-import { Search, Plus, Info } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Search, Plus, CakeSlice, ShoppingBag, Clock, CheckCircle } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function Menu() {
   const { products, categories: dbCategories, addToCart } = useOutletContext();
   const [activeTab, setActiveTab] = useState('');
+  const [myOrders, setMyOrders] = useState([]);
+
+  useEffect(() => {
+    // Fetch orders if phone exists
+    const fetchOrders = async () => {
+      try {
+        const savedCustomer = localStorage.getItem('bakery_customer');
+        if (savedCustomer) {
+          const cust = JSON.parse(savedCustomer);
+          if (cust.phone) {
+            const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
+            const res = await axios.get(`${BACKEND_URL}/customer/orders/${cust.phone}`);
+            setMyOrders(res.data.data);
+          }
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Use categories from DB to ensure Admin controls the order and existence
   const categoryNames = useMemo(() => {
@@ -75,7 +99,30 @@ export default function Menu() {
         </div>
       </div>
 
-
+      {/* Order Tracking Banner */}
+      {myOrders.length > 0 && (
+        <div className="px-4 mt-4">
+          <div className="bg-brand-600 rounded-2xl p-4 text-white shadow-md mb-2 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-20">
+              <ShoppingBag size={64} />
+            </div>
+            <h3 className="font-bold text-lg mb-2 relative z-10">Đơn hàng của bạn</h3>
+            <div className="space-y-2 relative z-10">
+              {myOrders.slice(0, 2).map(order => (
+                <div key={order._id} className="flex justify-between items-center bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    {order.status === 'PENDING' ? <Clock size={16} className="text-brand-100" /> : <CheckCircle size={16} className="text-green-300" />}
+                    <span className="text-sm font-medium">
+                      {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 'Đang giao / Hoàn thành'}
+                    </span>
+                  </div>
+                  <div className="font-bold">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Product List */}
       <div className="px-4 space-y-8 mt-4">

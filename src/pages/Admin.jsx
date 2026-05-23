@@ -541,7 +541,7 @@ export default function Admin() {
               <form onSubmit={handleSaveSettings} className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
                 <div className="mb-6">
                   <h3 className="font-bold text-lg mb-2">Vị trí cửa hàng</h3>
-                  <p className="text-sm text-stone-500 mb-4">Ghim vị trí chính xác của tiệm bánh để tính khoảng cách giao hàng.</p>
+                  <p className="text-sm text-stone-500 mb-4">Ghim vị trí chính xác của tiệm bánh để hệ thống AloShipp lấy hàng.</p>
                   <div className="h-64 w-full rounded-xl overflow-hidden border border-stone-200 z-0 relative">
                     <MapContainer center={[settings.storeLocation.lat, settings.storeLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
                       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -553,19 +553,7 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="text-sm font-bold text-stone-600 block mb-2">Phí ship cơ bản (VNĐ)</label>
-                    <input name="shippingBaseFee" type="number" defaultValue={settings.shippingBaseFee} required className="w-full px-4 py-2 border rounded-lg" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-bold text-stone-600 block mb-2">Áp dụng cho (Km) đầu tiên</label>
-                    <input name="shippingBaseKm" type="number" defaultValue={settings.shippingBaseKm} required className="w-full px-4 py-2 border rounded-lg" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-bold text-stone-600 block mb-2">Phí mỗi Km tiếp theo (VNĐ)</label>
-                    <input name="shippingExtraFeePerKm" type="number" defaultValue={settings.shippingExtraFeePerKm} required className="w-full px-4 py-2 border rounded-lg" />
-                  </div>
+                <div className="grid grid-cols-1 gap-6 mb-6">
                   <div>
                     <label className="text-sm font-bold text-stone-600 block mb-2">Giới hạn giao hàng (Max Km)</label>
                     <input name="maxDeliveryKm" type="number" defaultValue={settings.maxDeliveryKm} required className="w-full px-4 py-2 border rounded-lg" />
