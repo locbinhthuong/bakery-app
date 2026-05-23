@@ -50,22 +50,29 @@ export default function Admin() {
     }
   };
 
-  // Upload ảnh lên Backend
+  // Upload ảnh lên Backend bằng Base64 (Hỗ trợ tốt nhất cho Vercel)
   const uploadImageFile = async (file) => {
     if (!file || file.size === 0) return null;
-    const formData = new FormData();
-    formData.append('image', file);
-    try {
-      const res = await axios.post(`${BACKEND_URL}/admin/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      // Trả về full URL
-      const baseUrl = BACKEND_URL.replace('/api/shop', '');
-      return baseUrl + res.data.url;
-    } catch (err) {
-      console.error('Lỗi upload ảnh:', err);
-      return null;
-    }
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64Image = reader.result;
+          const res = await axios.post(`${BACKEND_URL}/admin/upload`, { image: base64Image });
+          const baseUrl = BACKEND_URL.replace('/api/shop', '');
+          resolve(baseUrl + res.data.url);
+        } catch (err) {
+          console.error('Lỗi upload ảnh:', err);
+          resolve(null);
+        }
+      };
+      reader.onerror = () => {
+        console.error('Lỗi đọc file ảnh');
+        resolve(null);
+      };
+    });
   };
 
   const handleDeleteProduct = async (id) => {
