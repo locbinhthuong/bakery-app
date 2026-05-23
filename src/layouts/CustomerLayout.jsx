@@ -122,15 +122,6 @@ export default function CustomerLayout() {
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
-  let previewShippingFee = 0;
-  if (settings && customerLocation && settings.storeLocation) {
-    const lat1 = settings.storeLocation.lat;
-    const lon1 = settings.storeLocation.lng;
-    const lat2 = customerLocation.lat;
-    const lon2 = customerLocation.lng;
-    
-  const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  
   const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0);
 
   useEffect(() => {
