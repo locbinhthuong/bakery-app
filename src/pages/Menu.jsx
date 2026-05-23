@@ -1,60 +1,116 @@
 import { useOutletContext } from 'react-router-dom';
-import { ShoppingBag, CakeSlice, Plus, ChevronRight } from 'lucide-react';
+import { Search, Plus, Info } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export default function Menu() {
   const { products, addToCart } = useOutletContext();
+  const [activeTab, setActiveTab] = useState('');
+
+  // Group products by category
+  const categories = useMemo(() => {
+    const groups = {};
+    products.forEach(p => {
+      const cat = p.category || 'Khác';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(p);
+    });
+    return groups;
+  }, [products]);
+
+  const categoryNames = Object.keys(categories);
+  if (categoryNames.length > 0 && !activeTab) {
+    setActiveTab(categoryNames[0]);
+  }
+
+  const scrollToCategory = (cat) => {
+    setActiveTab(cat);
+    const el = document.getElementById(`cat-${cat}`);
+    if (el) {
+      // Offset for sticky header
+      const y = el.getBoundingClientRect().top + window.scrollY - 130;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div className="pt-32 pb-16">
-      <section className="max-w-7xl mx-auto px-4 md:px-12">
-        <div className="mb-8 md:mb-16">
-          <span className="text-brand-600 font-semibold tracking-[0.2em] uppercase text-xs mb-2 block">Thực đơn đầy đủ</span>
-          <h1 className="text-3xl md:text-5xl font-serif text-brand-900">Tất cả Sản phẩm</h1>
+    <div className="pb-24 bg-brand-50 min-h-screen">
+      {/* Header */}
+      <div className="sticky top-0 bg-brand-50 z-30 pt-12 pb-2 px-4 shadow-sm border-b border-brand-100">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-brand-900">Đặt hàng</h1>
+          <button className="w-10 h-10 rounded-full bg-brand-200/50 flex items-center justify-center text-brand-900">
+            <Search size={20} />
+          </button>
         </div>
+        
+        {/* Category Tabs */}
+        <div className="flex overflow-x-auto gap-2 pb-2" style={{ scrollbarWidth: 'none' }}>
+          {categoryNames.map(cat => (
+            <button 
+              key={cat}
+              onClick={() => scrollToCategory(cat)}
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors border ${activeTab === cat ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-800 border-brand-200'}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 md:gap-x-8 md:gap-y-16">
-          {products.map((product) => (
-            <div key={product._id} className="group flex flex-col items-start cursor-pointer w-full">
-              <div className="w-full aspect-square md:aspect-[4/5] bg-stone-100 rounded-2xl mb-4 md:mb-6 overflow-hidden relative shadow-sm">
-                {product.image ? (
-                  <img src={product.image} alt={product.name} className="w-full h-full object-contain p-4 transition-transform duration-700 ease-out-expo group-hover:scale-105 bg-white" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-stone-300">
-                    <CakeSlice size={48} strokeWidth={1} />
+      {/* Warning Banner */}
+      <div className="bg-orange-300 text-brand-900 px-4 py-3 text-sm font-medium flex items-start gap-2 shadow-sm mb-4 sticky top-[125px] z-20">
+        <Info size={18} className="shrink-0 mt-0.5" />
+        <span>Đã hết giờ nhận đơn, cửa hàng hẹn bạn 07:30 mỗi ngày để thưởng thức tiếp!</span>
+      </div>
+
+      {/* Product List */}
+      <div className="px-4 space-y-8 mt-4">
+        {categoryNames.map(cat => (
+          <div key={cat} id={`cat-${cat}`} className="pt-2">
+            <h2 className="text-xl font-bold text-brand-900 mb-4">{cat}</h2>
+            
+            <div className="space-y-3">
+              {categories[cat].map(product => (
+                <div key={product._id} className="bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 flex gap-4 relative overflow-hidden">
+                  <div className="absolute top-2 left-0 bg-brand-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-r">MỚI</div>
+                  
+                  <div className="w-24 h-24 bg-brand-50 rounded-xl overflow-hidden shrink-0">
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-brand-300">
+                        <CakeSlice size={24} />
+                      </div>
+                    )}
                   </div>
-                )}
-                {/* Desktop hover cart button */}
-                <div className="hidden md:flex absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-end p-4">
+                  
+                  <div className="flex-1 flex flex-col justify-between py-1">
+                    <div>
+                      <h3 className="font-bold text-brand-900 text-base leading-snug line-clamp-2 mb-1">{product.name}</h3>
+                      <p className="text-xs text-brand-600 line-clamp-1">{product.description}</p>
+                    </div>
+                    <div className="text-brand-600 font-bold text-sm">
+                      {product.price.toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+
                   <button 
-                    onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                    className="w-full bg-white/95 backdrop-blur py-4 text-brand-900 font-medium tracking-wide rounded-xl flex items-center justify-center gap-2 hover:bg-brand-900 hover:text-white transition-colors translate-y-4 group-hover:translate-y-0 duration-500 ease-out-expo shadow-lg"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart(product); }}
+                    className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center hover:bg-brand-500 hover:text-white transition-colors"
                   >
-                    <ShoppingBag size={18} /> Thêm vào giỏ
+                    <Plus size={18} strokeWidth={2.5}/>
                   </button>
                 </div>
-              </div>
-              <h3 className="text-base md:text-xl font-serif font-medium text-stone-900 mb-1 md:mb-2 group-hover:text-brand-700 transition-colors line-clamp-1 md:line-clamp-none">{product.name}</h3>
-              <p className="hidden md:block text-stone-500 line-clamp-2 leading-relaxed mb-4">{product.description}</p>
-              <div className="text-sm md:text-lg font-medium text-brand-800 mb-3 md:mb-0 md:mt-auto">{product.price.toLocaleString('vi-VN')} ₫</div>
-              
-              {/* Mobile Add to cart button */}
-              <button 
-                onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                className="md:hidden mt-auto w-full py-2.5 bg-brand-50 text-brand-800 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 active:bg-brand-100 transition-colors"
-              >
-                <Plus size={16} /> Thêm
-              </button>
+              ))}
             </div>
-          ))}
-          
-          {products.length === 0 && (
-            <div className="col-span-full py-20 text-center text-stone-400">
-              <CakeSlice size={48} strokeWidth={1} className="mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Hiện chưa có mẻ bánh nào ra lò.</p>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        ))}
+        {categoryNames.length === 0 && (
+          <div className="text-center py-20 text-brand-800">
+            Không có sản phẩm nào
+          </div>
+        )}
+      </div>
     </div>
   );
 }

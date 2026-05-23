@@ -7,18 +7,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Impeccable Design Colors - Warm bakery theme
+        // Phê La Inspired Colors - Warm beige, brown and orange
         brand: {
-          50: '#fdf8f6',
-          100: '#f2e8e5',
-          200: '#eaddd7',
-          300: '#e0cec7',
-          400: '#d2bab0',
-          500: '#a37c68',
-          600: '#865f4b',
-          700: '#684533',
-          800: '#4a2f20',
-          900: '#23140c',
+          50: '#fcf8f0', // Nền chung
+          100: '#f5ead5', // Nền khối/card
+          200: '#edd8b2',
+          300: '#e3c28a',
+          400: '#d9a764',
+          500: '#c58341', // Nút bấm cam đất
+          600: '#b06b37', // Cam đậm
+          700: '#925230', // Nâu nhạt
+          800: '#756961', // Chữ không active
+          900: '#533a29', // Chữ active / Tiêu đề chính
         },
         surface: {
           light: '#ffffff',
