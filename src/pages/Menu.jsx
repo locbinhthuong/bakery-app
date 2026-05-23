@@ -110,9 +110,9 @@ export default function Menu() {
 
                   <button 
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart(product); }}
-                    className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center hover:bg-brand-500 hover:text-white transition-colors"
+                    className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-xs shadow-sm hover:bg-brand-500 hover:text-white transition-colors"
                   >
-                    <Plus size={18} strokeWidth={2.5}/>
+                    <Plus size={14} strokeWidth={3} className="mr-1" /> Thêm
                   </button>
                 </div>
               ))}

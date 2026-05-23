@@ -6,6 +6,7 @@ import CustomerLayout from './layouts/CustomerLayout';
 import Menu from './pages/Menu';
 import Promos from './pages/Promos';
 import Profile from './pages/Profile';
+import Orders from './pages/Orders';
 
 function App() {
   const hostname = window.location.hostname;
@@ -27,6 +28,7 @@ function App() {
               <Route path="menu" element={<Menu />} />
               <Route path="promos" element={<Promos />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="orders" element={<Orders />} />
             </Route>
             {/* Vẫn giữ hờ /admin cho lúc test localhost */}
             <Route path="/admin" element={<Admin />} />

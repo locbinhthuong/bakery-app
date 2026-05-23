@@ -108,6 +108,18 @@ export default function CustomerLayout() {
     });
   };
 
+  const removeFromCart = (productId) => {
+    setCart(prev => prev.filter(item => item._id !== productId));
+  };
+
+  const increaseQuantity = (productId) => {
+    setCart(prev => prev.map(item => item._id === productId ? { ...item, quantity: item.quantity + 1 } : item));
+  };
+
+  const decreaseQuantity = (productId) => {
+    setCart(prev => prev.map(item => item._id === productId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item));
+  };
+
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
   let previewShippingFee = 0;
@@ -176,6 +188,7 @@ export default function CustomerLayout() {
       setAppliedPromo(null);
       setDiscountCode('');
       setIsCheckout(false);
+      navigate('/orders'); // Navigate to tracking page after successful order
     } catch (err) {
       alert('Lỗi đặt hàng, vui lòng thử lại.');
     }
@@ -301,17 +314,24 @@ export default function CustomerLayout() {
               ) : (
                 <div className="space-y-6">
                   {cart.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-start gap-4 bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50">
+                    <div key={idx} className="flex justify-between items-start gap-4 bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 relative">
                       <div className="w-20 h-20 bg-brand-50 rounded-xl overflow-hidden shrink-0">
                         {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-brand-300"><CakeSlice size={24}/></div>}
                       </div>
-                      <div className="flex-1 py-1">
-                        <div className="font-bold text-stone-900 leading-tight mb-1">{item.name}</div>
-                        <div className="text-sm text-brand-600 font-medium">{item.price.toLocaleString('vi-VN')} ₫ <span className="text-stone-500">x {item.quantity}</span></div>
+                      <div className="flex-1 py-1 pr-6">
+                        <div className="font-bold text-stone-900 leading-tight mb-2">{item.name}</div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-sm text-brand-600 font-bold">{item.price.toLocaleString('vi-VN')} ₫</div>
+                          <div className="flex items-center gap-2 bg-stone-100 rounded-lg px-2 py-1">
+                            <button onClick={() => decreaseQuantity(item._id)} className="w-6 h-6 flex items-center justify-center font-bold text-stone-600 hover:bg-stone-200 rounded-md">-</button>
+                            <span className="w-4 text-center font-bold text-sm text-stone-800">{item.quantity}</span>
+                            <button onClick={() => increaseQuantity(item._id)} className="w-6 h-6 flex items-center justify-center font-bold text-stone-600 hover:bg-stone-200 rounded-md">+</button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="font-bold text-stone-900 py-1">
-                        {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
-                      </div>
+                      <button onClick={() => removeFromCart(item._id)} className="absolute top-2 right-2 p-1.5 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <X size={16} />
+                      </button>
                     </div>
                   ))}
                   <div className="bg-white p-4 rounded-2xl shadow-sm border border-brand-100/50 space-y-3">
@@ -454,9 +474,9 @@ export default function CustomerLayout() {
           <Ticket size={24} strokeWidth={location.pathname === '/promos' ? 2.5 : 2} fill={location.pathname === '/promos' ? 'currentColor' : 'none'} />
           <span className="text-[10px] font-bold">Ưu đãi</span>
         </Link>
-        <Link to="/profile" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/profile' ? 'text-brand-900' : 'text-brand-800'}`}>
-          <LayoutGrid size={24} strokeWidth={location.pathname === '/profile' ? 2.5 : 2} fill={location.pathname === '/profile' ? 'currentColor' : 'none'} />
-          <span className="text-[10px] font-bold">Khác</span>
+        <Link to="/orders" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/orders' ? 'text-brand-900' : 'text-brand-800'}`}>
+          <LayoutGrid size={24} strokeWidth={location.pathname === '/orders' ? 2.5 : 2} fill={location.pathname === '/orders' ? 'currentColor' : 'none'} />
+          <span className="text-[10px] font-bold">Đơn hàng</span>
         </Link>
       </div>
     </div>
