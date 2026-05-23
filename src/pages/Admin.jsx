@@ -1,6 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Package, Users, Tag, ShoppingCart, LogOut, Plus, Edit2, Trash2, CheckCircle, CakeSlice, MapPin, Eye, Menu as MenuIcon, X, ListFilter, Star } from 'lucide-react';
+import { Package, Users, Tag, ShoppingCart, LogOut, Plus, Edit2, Trash2, CheckCircle, CakeSlice, MapPin, Eye, Menu as MenuIcon, X, ListFilter, Star, Settings } from 'lucide-react';
 import axios from 'axios';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix leaflet icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function LocationMarker({ position, setPosition }) {
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+    },
+  });
+
+  return position === null ? null : (
+    <Marker position={position}></Marker>
+  );
+}
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
@@ -13,6 +36,7 @@ export default function Admin() {
   const [promos, setPromos] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [settings, setSettings] = useState(null);
   
   const [selectedOrder, setSelectedOrder] = useState(null);
   
@@ -44,6 +68,9 @@ export default function Admin() {
       } else if (activeTab === 'customers') {
         const res = await axios.get(`${BACKEND_URL}/admin/customers`);
         setCustomers(res.data.data);
+      } else if (activeTab === 'settings') {
+        const res = await axios.get(`${BACKEND_URL}/settings`);
+        setSettings(res.data.data);
       }
     } catch (err) {
       console.error(err);
@@ -193,11 +220,29 @@ export default function Admin() {
     } catch (err) { alert('Lỗi xác nhận đơn'); }
   };
 
+  // SETTINGS Actions
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await axios.put(`${BACKEND_URL}/admin/settings`, {
+        shippingBaseFee: Number(fd.get('shippingBaseFee')),
+        shippingBaseKm: Number(fd.get('shippingBaseKm')),
+        shippingExtraFeePerKm: Number(fd.get('shippingExtraFeePerKm')),
+        maxDeliveryKm: Number(fd.get('maxDeliveryKm')),
+        storeLocation: settings.storeLocation // This is updated via the map click
+      });
+      alert('Đã lưu cài đặt!');
+      fetchData();
+    } catch (err) { alert('Lỗi lưu cài đặt'); }
+  };
+
   const menuItems = [
     { id: 'home', icon: Tag, label: 'Trang chủ' },
     { id: 'menu', icon: Package, label: 'Đặt hàng' },
     { id: 'orders', icon: ShoppingCart, label: 'Đơn hàng' },
     { id: 'customers', icon: Users, label: 'Khách hàng' },
+    { id: 'settings', icon: Settings, label: 'Cài đặt' },
   ];
 
   return (
@@ -486,6 +531,49 @@ export default function Admin() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* ===================== SETTINGS TAB ===================== */}
+          {activeTab === 'settings' && settings && (
+            <div className="animate-in fade-in duration-500 max-w-4xl mx-auto space-y-6">
+              <h2 className="text-2xl font-bold mb-6">Cài đặt Cửa hàng & Vận chuyển</h2>
+              <form onSubmit={handleSaveSettings} className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                <div className="mb-6">
+                  <h3 className="font-bold text-lg mb-2">Vị trí cửa hàng</h3>
+                  <p className="text-sm text-stone-500 mb-4">Ghim vị trí chính xác của tiệm bánh để tính khoảng cách giao hàng.</p>
+                  <div className="h-64 w-full rounded-xl overflow-hidden border border-stone-200 z-0 relative">
+                    <MapContainer center={[settings.storeLocation.lat, settings.storeLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
+                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                      <LocationMarker 
+                        position={settings.storeLocation} 
+                        setPosition={(latlng) => setSettings({...settings, storeLocation: latlng})} 
+                      />
+                    </MapContainer>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="text-sm font-bold text-stone-600 block mb-2">Phí ship cơ bản (VNĐ)</label>
+                    <input name="shippingBaseFee" type="number" defaultValue={settings.shippingBaseFee} required className="w-full px-4 py-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-stone-600 block mb-2">Áp dụng cho (Km) đầu tiên</label>
+                    <input name="shippingBaseKm" type="number" defaultValue={settings.shippingBaseKm} required className="w-full px-4 py-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-stone-600 block mb-2">Phí mỗi Km tiếp theo (VNĐ)</label>
+                    <input name="shippingExtraFeePerKm" type="number" defaultValue={settings.shippingExtraFeePerKm} required className="w-full px-4 py-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-stone-600 block mb-2">Giới hạn giao hàng (Max Km)</label>
+                    <input name="maxDeliveryKm" type="number" defaultValue={settings.maxDeliveryKm} required className="w-full px-4 py-2 border rounded-lg" />
+                  </div>
+                </div>
+                
+                <button type="submit" className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Lưu cài đặt</button>
+              </form>
             </div>
           )}
 

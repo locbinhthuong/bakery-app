@@ -1,7 +1,38 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, CakeSlice, MapPin, Phone, ArrowRight, Home as HomeIcon, Coffee, Percent, LayoutGrid, QrCode, X, ChevronRight, Ticket } from 'lucide-react';
+import { ShoppingBag, CakeSlice, MapPin, Phone, ArrowRight, Home as HomeIcon, Coffee, Percent, LayoutGrid, QrCode, X, ChevronRight, Ticket, Navigation } from 'lucide-react';
 import axios from 'axios';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function LocationMarker({ position, setPosition }) {
+  const map = useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+    },
+    locationfound(e) {
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, map.getZoom());
+    },
+  });
+
+  // Request GPS automatically on load if position is not set
+  useEffect(() => {
+    if (!position) map.locate();
+  }, [map, position]);
+
+  return position === null ? null : (
+    <Marker position={position}></Marker>
+  );
+}
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
@@ -15,6 +46,10 @@ export default function CustomerLayout() {
   const [scrolled, setScrolled] = useState(false);
   const [discountCode, setDiscountCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
+  
+  const [settings, setSettings] = useState(null);
+  const [customerLocation, setCustomerLocation] = useState(null);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   const [customer, setCustomer] = useState(null);
 
@@ -38,6 +73,10 @@ export default function CustomerLayout() {
 
     axios.get(`${BACKEND_URL}/categories`)
       .then(res => setCategories(res.data.data))
+      .catch(err => console.error(err));
+      
+    axios.get(`${BACKEND_URL}/settings`)
+      .then(res => setSettings(res.data.data))
       .catch(err => console.error(err));
       
     const token = localStorage.getItem('bakery_token');
@@ -70,7 +109,35 @@ export default function CustomerLayout() {
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0);
+  
+  let previewShippingFee = 0;
+  if (settings && customerLocation && settings.storeLocation) {
+    const lat1 = settings.storeLocation.lat;
+    const lon1 = settings.storeLocation.lng;
+    const lat2 = customerLocation.lat;
+    const lon2 = customerLocation.lng;
+    
+    const R = 6371; 
+    const dLat = (lat2 - lat1) * (Math.PI / 180);  
+    const dLon = (lon2 - lon1) * (Math.PI / 180); 
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+    const distanceKm = R * c; 
+
+    if (distanceKm <= settings.maxDeliveryKm) {
+      if (distanceKm <= settings.shippingBaseKm) {
+        previewShippingFee = settings.shippingBaseFee;
+      } else {
+        const extraKm = distanceKm - settings.shippingBaseKm;
+        previewShippingFee = settings.shippingBaseFee + (extraKm * settings.shippingExtraFeePerKm);
+      }
+    }
+  }
+
+  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0) + previewShippingFee;
 
   useEffect(() => {
     if (cart.length === 0) setAppliedPromo(null);
@@ -96,6 +163,7 @@ export default function CustomerLayout() {
         customerName: formData.name,
         customerPhone: formData.phone,
         deliveryAddress: formData.address,
+        customerLocation: customerLocation,
         note: formData.note,
         items: cart.map(i => ({ productId: i._id, name: i.name, price: i.price, quantity: i.quantity })),
         subTotal: totalAmount,
@@ -257,6 +325,12 @@ export default function CustomerLayout() {
                         <span>-{appliedPromo.discountAmount.toLocaleString('vi-VN')} ₫</span>
                       </div>
                     )}
+                    {previewShippingFee > 0 && (
+                      <div className="flex justify-between items-center text-stone-600 text-sm font-medium">
+                        <span>Phí giao hàng</span>
+                        <span>+{previewShippingFee.toLocaleString('vi-VN')} ₫</span>
+                      </div>
+                    )}
                     <div className="pt-3 border-t border-brand-100/50 flex justify-between items-center text-lg font-bold text-stone-900">
                       <span>Tổng cộng</span>
                       <span className="text-brand-600 text-xl">{finalAmount.toLocaleString('vi-VN')} ₫</span>
@@ -296,6 +370,12 @@ export default function CustomerLayout() {
                       className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
                       value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})}
                     />
+                    
+                    <button type="button" onClick={() => setIsMapOpen(true)} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
+                      <Navigation size={18} className="text-brand-600"/> 
+                      {customerLocation ? 'Đã ghim vị trí (Sửa)' : 'Ghim vị trí nhận hàng (Tính ship)'}
+                    </button>
+
                     <textarea 
                       placeholder="Ghi chú (tùy chọn)" rows="2"
                       className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium resize-none"
@@ -313,6 +393,34 @@ export default function CustomerLayout() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Map Picker Modal */}
+      {isMapOpen && settings && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onClick={() => setIsMapOpen(false)}></div>
+          <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+             <div className="p-4 border-b border-stone-100 flex justify-between items-center bg-white">
+               <h2 className="text-lg font-bold text-stone-900">Ghim Vị Trí Nhận Hàng</h2>
+               <button onClick={() => setIsMapOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-800"><X size={18}/></button>
+             </div>
+             <div className="p-4 bg-stone-50 text-sm text-stone-600 font-medium">
+               Hãy cho phép truy cập GPS hoặc chạm vào bản đồ để chọn chính xác điểm giao.
+             </div>
+             <div className="h-[60vh] w-full relative z-0">
+                <MapContainer center={customerLocation || [settings.storeLocation.lat, settings.storeLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <LocationMarker 
+                    position={customerLocation} 
+                    setPosition={setCustomerLocation} 
+                  />
+                </MapContainer>
+             </div>
+             <div className="p-4 bg-white border-t border-stone-100">
+               <button onClick={() => setIsMapOpen(false)} className="w-full py-3.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận vị trí</button>
+             </div>
           </div>
         </div>
       )}
