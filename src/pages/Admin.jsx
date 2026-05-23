@@ -1,29 +1,46 @@
 import { useState, useEffect } from 'react';
-import { Package, Users, Tag, ShoppingCart, LogOut, Plus, Edit2, Trash2, CheckCircle, CakeSlice, MapPin, Eye } from 'lucide-react';
+import { Package, Users, Tag, ShoppingCart, LogOut, Plus, Edit2, Trash2, CheckCircle, CakeSlice, MapPin, Eye, Menu as MenuIcon, X, ListFilter, Star } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('home');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [promos, setPromos] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [categories, setCategories] = useState([]);
+  
   const [selectedOrder, setSelectedOrder] = useState(null);
+  
+  // States for Editing Product
+  const [editingProduct, setEditingProduct] = useState(null);
 
-  // Fetch data
+  // States for Sub-tabs in Menu
+  const [menuSubTab, setMenuSubTab] = useState('products'); // 'products' or 'categories'
+
   const fetchData = async () => {
     try {
-      if (activeTab === 'orders') {
+      if (activeTab === 'home') {
+        const [resPromos, resProducts] = await Promise.all([
+          axios.get(`${BACKEND_URL}/admin/promos`),
+          axios.get(`${BACKEND_URL}/admin/products`)
+        ]);
+        setPromos(resPromos.data.data);
+        setProducts(resProducts.data.data);
+      } else if (activeTab === 'menu') {
+        const [resProducts, resCats] = await Promise.all([
+          axios.get(`${BACKEND_URL}/admin/products`),
+          axios.get(`${BACKEND_URL}/categories`)
+        ]);
+        setProducts(resProducts.data.data);
+        setCategories(resCats.data.data);
+      } else if (activeTab === 'orders') {
         const res = await axios.get(`${BACKEND_URL}/admin/orders`);
         setOrders(res.data.data);
-      } else if (activeTab === 'products') {
-        const res = await axios.get(`${BACKEND_URL}/admin/products`);
-        setProducts(res.data.data);
-      } else if (activeTab === 'promos') {
-        const res = await axios.get(`${BACKEND_URL}/admin/promos`);
-        setPromos(res.data.data);
       } else if (activeTab === 'customers') {
         const res = await axios.get(`${BACKEND_URL}/admin/customers`);
         setCustomers(res.data.data);
@@ -35,48 +52,91 @@ export default function Admin() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 10000); // Auto refresh
+    const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [activeTab]);
 
-  // Actions
-  const handleConfirmOrder = async (id) => {
-    try {
-      await axios.put(`${BACKEND_URL}/admin/orders/${id}/confirm`);
-      fetchData();
-      alert('Đã xác nhận và đẩy đơn sang AloShipp!');
-    } catch (err) {
-      alert('Lỗi: ' + (err.response?.data?.message || err.message));
-    }
-  };
-
-  // Upload ảnh lên Backend bằng Base64 (Hỗ trợ tốt nhất cho Vercel)
+  // Upload Logic
   const uploadImageFile = async (file) => {
     if (!file || file.size === 0) return null;
-    
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         try {
-          const base64Image = reader.result;
-          const res = await axios.post(`${BACKEND_URL}/admin/upload`, { image: base64Image });
-          if (res.data.url.startsWith('http')) {
-            resolve(res.data.url);
-          } else {
-            const baseUrl = BACKEND_URL.replace('/api/shop', '');
-            resolve(baseUrl + res.data.url);
-          }
+          const res = await axios.post(`${BACKEND_URL}/admin/upload`, { image: reader.result });
+          resolve(res.data.url.startsWith('http') ? res.data.url : BACKEND_URL.replace('/api/shop', '') + res.data.url);
         } catch (err) {
-          console.error('Lỗi upload ảnh:', err);
+          console.error(err);
           resolve(null);
         }
       };
-      reader.onerror = () => {
-        console.error('Lỗi đọc file ảnh');
-        resolve(null);
-      };
+      reader.onerror = () => resolve(null);
     });
+  };
+
+  // CATEGORIES Actions
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    const name = e.target.name.value;
+    try {
+      await axios.post(`${BACKEND_URL}/admin/categories`, { name });
+      e.target.reset();
+      fetchData();
+    } catch (err) { alert('Lỗi thêm bộ lọc'); }
+  };
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm('Xoá bộ lọc này?')) return;
+    try {
+      await axios.delete(`${BACKEND_URL}/admin/categories/${id}`);
+      fetchData();
+    } catch (err) { alert('Lỗi xoá bộ lọc'); }
+  };
+
+  // PRODUCTS Actions
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const imageFile = fd.get('imageFile');
+    let imageUrl = '';
+    if (imageFile && imageFile.name) imageUrl = await uploadImageFile(imageFile);
+
+    try {
+      await axios.post(`${BACKEND_URL}/admin/products`, {
+        name: fd.get('name'),
+        price: Number(fd.get('price')),
+        category: fd.get('category'),
+        image: imageUrl,
+        description: fd.get('description'),
+        isActive: true
+      });
+      e.target.reset();
+      fetchData();
+    } catch (err) { alert('Lỗi thêm sản phẩm'); }
+  };
+
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const imageFile = fd.get('imageFile');
+    let imageUrl = editingProduct.image;
+    
+    if (imageFile && imageFile.name) {
+      const newUrl = await uploadImageFile(imageFile);
+      if (newUrl) imageUrl = newUrl;
+    }
+
+    try {
+      await axios.put(`${BACKEND_URL}/admin/products/${editingProduct._id}`, {
+        name: fd.get('name'),
+        price: Number(fd.get('price')),
+        category: fd.get('category'),
+        image: imageUrl,
+        description: fd.get('description')
+      });
+      setEditingProduct(null);
+      fetchData();
+    } catch (err) { alert('Lỗi cập nhật'); }
   };
 
   const handleDeleteProduct = async (id) => {
@@ -84,101 +144,87 @@ export default function Admin() {
     try {
       await axios.delete(`${BACKEND_URL}/admin/products/${id}`);
       fetchData();
-    } catch (err) {
-      alert('Lỗi xoá bánh');
-    }
+    } catch (err) { alert('Lỗi xoá bánh'); }
   };
 
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    
-    // Upload ảnh trước
-    const imageFile = fd.get('imageFile');
-    let imageUrl = '';
-    if (imageFile && imageFile.name) {
-      imageUrl = await uploadImageFile(imageFile);
-      if (!imageUrl) return alert('Lỗi tải ảnh lên máy chủ!');
-    }
-
-    const product = {
-      name: fd.get('name'),
-      price: Number(fd.get('price')),
-      image: imageUrl,
-      description: fd.get('description'),
-      isActive: true
-    };
+  const handleToggleBestSeller = async (id, currentStatus) => {
     try {
-      await axios.post(`${BACKEND_URL}/admin/products`, product);
-      e.target.reset();
+      await axios.put(`${BACKEND_URL}/admin/products/${id}/bestseller`, { isBestSeller: !currentStatus });
       fetchData();
-    } catch (err) {
-      alert('Lỗi thêm sản phẩm');
-    }
+    } catch (err) { alert('Lỗi cập nhật món bán chạy'); }
   };
 
+  // PROMOS Actions
   const handleAddPromo = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-
     const imageFile = fd.get('imageFile');
     let imageUrl = '';
-    if (imageFile && imageFile.name) {
-      imageUrl = await uploadImageFile(imageFile);
-    }
+    if (imageFile && imageFile.name) imageUrl = await uploadImageFile(imageFile);
 
-    const promo = {
-      title: fd.get('title'),
-      content: fd.get('content'),
-      image: imageUrl,
-      code: fd.get('code') || '',
-      discountType: fd.get('discountType') || 'NONE',
-      discountValue: Number(fd.get('discountValue')) || 0,
-      isActive: true
-    };
     try {
-      await axios.post(`${BACKEND_URL}/admin/promos`, promo);
+      await axios.post(`${BACKEND_URL}/admin/promos`, {
+        title: fd.get('title'),
+        content: fd.get('content'),
+        image: imageUrl,
+        code: fd.get('code') || '',
+        discountType: fd.get('discountType') || 'NONE',
+        discountValue: Number(fd.get('discountValue')) || 0,
+        isActive: true
+      });
       e.target.reset();
       fetchData();
-    } catch (err) {
-      alert('Lỗi thêm khuyến mãi');
-    }
+    } catch (err) { alert('Lỗi thêm khuyến mãi'); }
   };
-
   const handleDeletePromo = async (id) => {
     if (!window.confirm('Chắc chắn xoá bài đăng này?')) return;
     try {
       await axios.delete(`${BACKEND_URL}/admin/promos/${id}`);
       fetchData();
-    } catch (err) {
-      alert('Lỗi xoá');
-    }
+    } catch (err) { alert('Lỗi xoá'); }
+  };
+
+  // ORDERS Actions
+  const handleConfirmOrder = async (id) => {
+    try {
+      await axios.put(`${BACKEND_URL}/admin/orders/${id}/confirm`);
+      fetchData();
+      alert('Đã xác nhận!');
+    } catch (err) { alert('Lỗi xác nhận đơn'); }
   };
 
   const menuItems = [
-    { id: 'orders', icon: ShoppingCart, label: 'Đơn Hàng' },
-    { id: 'products', icon: Package, label: 'Sản Phẩm' },
-    { id: 'promos', icon: Tag, label: 'Khuyến Mãi' },
-    { id: 'customers', icon: Users, label: 'Khách Hàng' },
+    { id: 'home', icon: Tag, label: 'Trang chủ' },
+    { id: 'menu', icon: Package, label: 'Đặt hàng' },
+    { id: 'orders', icon: ShoppingCart, label: 'Đơn hàng' },
+    { id: 'customers', icon: Users, label: 'Khách hàng' },
   ];
 
   return (
     <div className="min-h-screen bg-stone-100 flex font-sans text-stone-800">
       
+      {/* Sidebar Overlay (Mobile) */}
+      {!isSidebarOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setIsSidebarOpen(true)}></div>
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-[#23140c] text-stone-300 flex flex-col hidden md:flex shrink-0">
-        <div className="p-6 mb-4 flex items-center gap-3 text-white">
-          <div className="w-10 h-10 bg-brand-500 rounded-lg flex items-center justify-center">
-            <CakeSlice size={20} className="text-white" />
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#23140c] text-stone-300 flex flex-col transform transition-transform duration-300 md:relative ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-white">
+            <div className="w-10 h-10 bg-brand-500 rounded-lg flex items-center justify-center">
+              <CakeSlice size={20} className="text-white" />
+            </div>
+            <span className="text-xl font-serif font-bold tracking-wide">Admin</span>
           </div>
-          <span className="text-xl font-serif font-bold tracking-wide">Le Petit</span>
+          <button className="md:hidden p-2" onClick={() => setIsSidebarOpen(false)}><X size={24}/></button>
         </div>
         
-        <nav className="flex-1 px-4 space-y-2">
+        <nav className="flex-1 px-4 space-y-2 mt-4">
           {menuItems.map(item => (
             <button 
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => { setActiveTab(item.id); if(window.innerWidth < 768) setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
                 activeTab === item.id 
                 ? 'bg-brand-600 text-white shadow-lg' 
@@ -192,186 +238,251 @@ export default function Admin() {
         </nav>
         
         <div className="p-4 mt-auto">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition-colors">
-            <LogOut size={20} />
-            Đăng xuất
+          <button onClick={() => { localStorage.removeItem('bakery_token'); window.location.href='/'; }} className="w-full flex items-center gap-3 px-4 py-3 text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition-colors">
+            <LogOut size={20} /> Đăng xuất
           </button>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-screen">
         {/* Header */}
-        <header className="bg-white px-4 md:px-8 py-4 md:py-6 flex justify-between items-center shadow-sm sticky top-0 z-10">
-          <h1 className="text-xl md:text-2xl font-serif font-bold text-stone-900">
+        <header className="bg-white px-4 md:px-8 py-4 flex items-center gap-4 shadow-sm z-10 shrink-0">
+          <button className="p-2 -ml-2 text-stone-600 rounded-lg hover:bg-stone-100" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            <MenuIcon size={24} />
+          </button>
+          <h1 className="text-xl font-serif font-bold text-stone-900">
             {menuItems.find(i => i.id === activeTab)?.label}
           </h1>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-brand-200 flex items-center justify-center text-brand-900 font-bold">A</div>
-            <span className="font-medium hidden md:block">Admin</span>
-            <button onClick={() => { localStorage.removeItem('bakery_token'); window.location.href='/'; }} className="md:hidden ml-1 p-2 text-stone-500 hover:text-red-500 transition-colors bg-stone-50 rounded-full" title="Đăng xuất">
-              <LogOut size={18} />
-            </button>
-          </div>
         </header>
 
         {/* Content */}
-        <main className="p-4 md:p-8 pb-28 md:pb-8 max-w-6xl mx-auto">
+        <main className="p-4 md:p-8 flex-1 overflow-y-auto bg-stone-50">
           
-          {/* ORDERS TAB */}
-          {activeTab === 'orders' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <div className="grid grid-cols-1 gap-4">
-                {orders.map(order => (
-                  <div key={order._id} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-bold text-lg text-brand-900">{order.customerName}</span>
-                        <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold rounded-full">{order.customerPhone}</span>
-                        {order.status === 'PENDING' ? (
-                          <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Chờ Xác Nhận</span>
-                        ) : (
-                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle size={12}/> Đã Đẩy AloShipp</span>
-                        )}
-                      </div>
-                      <p className="text-stone-600 mb-2"><MapPin size={16} className="inline mr-1 text-stone-400" /> {order.deliveryAddress}</p>
-                      <div className="text-sm font-medium text-stone-500 mb-3 line-clamp-1">
-                        {order.items.reduce((sum, i) => sum + i.quantity, 0)} sản phẩm: {order.items.map(i => i.name).join(', ')}
-                      </div>
-                      {order.discountCode && (
-                        <div className="text-sm font-bold text-green-600 mb-2 bg-green-50 px-2 py-1 rounded w-fit">
-                          Mã dùng: {order.discountCode} (-{order.discountAmount.toLocaleString('vi-VN')} ₫)
+          {/* ===================== HOME TAB (Promos + Best Sellers) ===================== */}
+          {activeTab === 'home' && (
+            <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto">
+              {/* Best Sellers Config */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
+                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Star size={20} className="text-brand-600" /> Quản lý Món Bán Chạy (Hiển thị trang chủ)</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {products.map(p => (
+                    <div key={p._id} className={`p-3 rounded-xl border flex items-center justify-between ${p.isBestSeller ? 'border-brand-500 bg-brand-50' : 'border-stone-200'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white rounded-md flex justify-center items-center overflow-hidden border border-stone-100">
+                          {p.image ? <img src={p.image} className="w-full h-full object-cover"/> : <CakeSlice size={16}/>}
                         </div>
-                      )}
-                      <button onClick={() => setSelectedOrder(order)} className="text-brand-600 hover:text-brand-800 text-sm font-bold flex items-center gap-1.5 bg-brand-50 px-3 py-1.5 rounded-lg w-fit transition-colors">
-                        <Eye size={16} /> Xem chi tiết
+                        <div className="font-medium text-sm line-clamp-1">{p.name}</div>
+                      </div>
+                      <button 
+                        onClick={() => handleToggleBestSeller(p._id, p.isBestSeller)}
+                        className={`w-10 h-6 rounded-full relative transition-colors ${p.isBestSeller ? 'bg-brand-500' : 'bg-stone-300'}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${p.isBestSeller ? 'left-5' : 'left-1'}`}></div>
                       </button>
                     </div>
-                    <div className="flex flex-col items-end gap-3 w-full md:w-auto h-full justify-between">
-                      <div className="text-xl font-bold text-stone-900">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
-                      <div className="text-xs text-stone-400 whitespace-nowrap">{new Date(order.createdAt).toLocaleString('vi-VN')}</div>
-                      {order.status === 'PENDING' && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleConfirmOrder(order._id); }}
-                          className="w-full md:w-auto px-4 py-1.5 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm text-sm"
-                        >
-                          Xác nhận & Giao
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {orders.length === 0 && <div className="text-center py-10 text-stone-400">Chưa có đơn hàng nào.</div>}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* PRODUCTS TAB */}
-          {activeTab === 'products' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
+              {/* Promos */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
-                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Plus size={20} className="text-brand-600" /> Thêm bánh mới</h3>
-                <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input name="name" type="text" placeholder="Tên bánh" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
-                  <input name="price" type="number" placeholder="Giá tiền (VNĐ)" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
-                  <input name="imageFile" type="file" accept="image/*" required className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-100 file:text-brand-700 hover:file:bg-brand-200 cursor-pointer" />
-                  <input name="description" type="text" placeholder="Mô tả ngắn gọn" className="px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
-                  <button type="submit" className="md:col-span-2 py-3 bg-stone-900 text-white font-medium rounded-lg hover:bg-brand-900 transition-colors">Đăng sản phẩm</button>
-                </form>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map(p => (
-                  <div key={p._id} className="bg-white p-4 rounded-xl shadow-sm border border-stone-200/60 flex flex-col gap-3 group">
-                    <div className="w-full h-40 bg-white rounded-lg overflow-hidden relative flex items-center justify-center p-2 border border-stone-100">
-                      {p.image ? <img src={p.image} className="w-full h-full object-contain" /> : null}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-stone-800">{p.name}</h4>
-                      <div className="text-brand-600 font-medium">{p.price.toLocaleString('vi-VN')} ₫</div>
-                    </div>
-                    <div className="mt-auto flex gap-2">
-                      <button onClick={() => handleDeleteProduct(p._id)} className="flex-1 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition flex justify-center items-center gap-2 text-sm"><Trash2 size={16}/> Xóa</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PROMOS TAB */}
-          {activeTab === 'promos' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
-                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Tag size={20} className="text-brand-600" /> Đăng tin tức / Khuyến mãi</h3>
-                <form onSubmit={handleAddPromo} className="space-y-4">
-                  <input name="title" type="text" placeholder="Tiêu đề (VD: Tặng trà đào khi mua bánh)" required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
-                  <textarea name="content" rows="3" placeholder="Nội dung khuyến mãi..." required className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 resize-none"></textarea>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-stone-200 p-4 rounded-xl bg-stone-50/50">
-                    <div className="md:col-span-3 text-sm font-bold text-stone-700 uppercase tracking-wider">Thiết lập mã giảm giá (Tùy chọn)</div>
-                    <input name="code" type="text" placeholder="Mã (VD: GIAM10K)" className="w-full px-4 py-2 bg-white border border-stone-200 rounded-lg outline-none focus:border-brand-500 uppercase" />
-                    <select name="discountType" className="w-full px-4 py-2 bg-white border border-stone-200 rounded-lg outline-none focus:border-brand-500">
-                      <option value="NONE">Không giảm giá</option>
-                      <option value="FIXED">Giảm số tiền cố định</option>
-                      <option value="PERCENT">Giảm theo %</option>
+                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Tag size={20} className="text-brand-600" /> Đăng quảng cáo / Sự kiện</h3>
+                <form onSubmit={handleAddPromo} className="space-y-4 mb-8 border-b border-stone-100 pb-8">
+                  <input name="title" type="text" placeholder="Tiêu đề" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
+                  <textarea name="content" rows="2" placeholder="Nội dung" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
+                  <div className="flex gap-4">
+                    <input name="code" type="text" placeholder="Mã (tuỳ chọn)" className="flex-1 px-4 py-2 bg-white border rounded-lg outline-none uppercase" />
+                    <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
+                      <option value="NONE">Không giảm</option>
+                      <option value="FIXED">Cố định</option>
+                      <option value="PERCENT">Phần trăm</option>
                     </select>
-                    <input name="discountValue" type="number" placeholder="Mức giảm (VD: 10000 hoặc 10)" className="w-full px-4 py-2 bg-white border border-stone-200 rounded-lg outline-none focus:border-brand-500" />
+                    <input name="discountValue" type="number" placeholder="Mức giảm" className="px-4 py-2 bg-white border rounded-lg outline-none" />
                   </div>
-                  <input name="imageFile" type="file" accept="image/*" className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-brand-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-100 file:text-brand-700 hover:file:bg-brand-200 cursor-pointer" />
-                  <button type="submit" className="w-full py-3 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors">Đăng lên trang chủ</button>
+                  <input name="imageFile" type="file" accept="image/*" className="w-full text-sm" />
+                  <button type="submit" className="py-2.5 px-6 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Đăng lên</button>
                 </form>
-              </div>
 
-              <div className="space-y-4">
-                {promos.map(promo => (
-                  <div key={promo._id} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60 flex gap-6 items-start">
-                    {promo.image && <img src={promo.image} className="w-32 h-24 object-contain bg-stone-50 rounded-lg shrink-0 border border-stone-100" />}
-                    <div className="flex-1">
-                      <h4 className="font-bold text-lg text-stone-800">{promo.title}</h4>
-                      <p className="text-stone-600 text-sm mt-1 mb-2">{promo.content}</p>
-                      {promo.code && (
-                        <div className="inline-block bg-brand-100 text-brand-800 font-bold px-3 py-1 rounded-md text-sm mb-2 border border-brand-200">
-                          Mã: {promo.code} (-{promo.discountType === 'PERCENT' ? `${promo.discountValue}%` : `${promo.discountValue.toLocaleString('vi-VN')}đ`})
-                        </div>
-                      )}
-                      <div className="text-xs text-stone-400">Đăng lúc: {new Date(promo.createdAt).toLocaleString('vi-VN')}</div>
+                <div className="space-y-3">
+                  {promos.map(promo => (
+                    <div key={promo._id} className="p-4 rounded-xl border border-stone-100 flex gap-4 items-center">
+                      <div className="flex-1">
+                        <div className="font-bold">{promo.title}</div>
+                        <div className="text-sm text-stone-500 line-clamp-1">{promo.content}</div>
+                      </div>
+                      <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
                     </div>
-                    <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-stone-400 hover:text-red-500 transition-colors bg-stone-100 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          {/* CUSTOMERS TAB */}
+          {/* ===================== MENU TAB (Products + Categories) ===================== */}
+          {activeTab === 'menu' && (
+            <div className="animate-in fade-in duration-500 max-w-5xl mx-auto">
+              {/* Sub-tabs */}
+              <div className="flex gap-4 mb-6 border-b border-stone-200 pb-2">
+                <button 
+                  onClick={() => setMenuSubTab('products')} 
+                  className={`font-bold pb-2 border-b-2 transition-colors ${menuSubTab === 'products' ? 'text-brand-600 border-brand-600' : 'text-stone-500 border-transparent hover:text-stone-800'}`}
+                >
+                  Sản Phẩm
+                </button>
+                <button 
+                  onClick={() => setMenuSubTab('categories')} 
+                  className={`font-bold pb-2 border-b-2 transition-colors ${menuSubTab === 'categories' ? 'text-brand-600 border-brand-600' : 'text-stone-500 border-transparent hover:text-stone-800'}`}
+                >
+                  Bộ Lọc (Danh mục)
+                </button>
+              </div>
+
+              {/* PRODUCTS SUB-TAB */}
+              {menuSubTab === 'products' && (
+                <div className="space-y-6">
+                  {/* Add Product Form */}
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
+                    <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2"><Plus size={18} className="text-brand-600" /> Thêm bánh mới</h3>
+                    <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <input name="name" type="text" placeholder="Tên bánh" required className="col-span-1 px-4 py-2 bg-stone-50 border rounded-lg" />
+                      <input name="price" type="number" placeholder="Giá (VNĐ)" required className="col-span-1 px-4 py-2 bg-stone-50 border rounded-lg" />
+                      <select name="category" required className="col-span-1 px-4 py-2 bg-stone-50 border rounded-lg">
+                        <option value="">Chọn Bộ Lọc (Khung kệ)</option>
+                        {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                      </select>
+                      <input name="description" type="text" placeholder="Mô tả ngắn gọn" className="md:col-span-2 px-4 py-2 bg-stone-50 border rounded-lg" />
+                      <input name="imageFile" type="file" accept="image/*" className="col-span-1 text-sm pt-2" />
+                      <button type="submit" className="md:col-span-3 py-2.5 bg-stone-900 text-white font-bold rounded-lg hover:bg-brand-900">Thêm Bánh</button>
+                    </form>
+                  </div>
+
+                  {/* Products List */}
+                  <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-stone-50 text-stone-600 font-medium border-b border-stone-200/60">
+                        <tr>
+                          <th className="px-4 py-3">Bánh</th>
+                          <th className="px-4 py-3">Khung Bộ Lọc</th>
+                          <th className="px-4 py-3">Giá</th>
+                          <th className="px-4 py-3 text-right">Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-100">
+                        {products.map(p => (
+                          <tr key={p._id} className="hover:bg-stone-50">
+                            <td className="px-4 py-3 flex items-center gap-3">
+                              <div className="w-10 h-10 rounded border overflow-hidden shrink-0">
+                                {p.image ? <img src={p.image} className="w-full h-full object-cover"/> : <div className="bg-stone-100 w-full h-full flex items-center justify-center text-stone-300"><CakeSlice size={16}/></div>}
+                              </div>
+                              <div className="font-bold text-stone-800">{p.name}</div>
+                            </td>
+                            <td className="px-4 py-3 text-stone-600">{p.category || 'Khác'}</td>
+                            <td className="px-4 py-3 text-brand-600 font-bold">{p.price.toLocaleString('vi-VN')}</td>
+                            <td className="px-4 py-3 text-right space-x-2">
+                              <button onClick={() => setEditingProduct(p)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded"><Edit2 size={16}/></button>
+                              <button onClick={() => handleDeleteProduct(p._id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded"><Trash2 size={16}/></button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* CATEGORIES SUB-TAB */}
+              {menuSubTab === 'categories' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
+                    <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2"><ListFilter size={18} className="text-brand-600" /> Tạo Bộ Lọc Mới</h3>
+                    <form onSubmit={handleAddCategory} className="flex gap-3">
+                      <input name="name" type="text" placeholder="Tên Bộ Lọc (VD: Cà Phê, Trà...)" required className="flex-1 px-4 py-2 bg-stone-50 border rounded-lg" />
+                      <button type="submit" className="px-4 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Thêm</button>
+                    </form>
+                    <p className="text-xs text-stone-400 mt-3">Khi thêm bộ lọc mới, nó sẽ xuất hiện trên thanh tìm kiếm ngang ở app Khách hàng.</p>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
+                    <h3 className="font-bold text-stone-800 mb-4">Các Bộ Lọc Hiện Có</h3>
+                    <div className="space-y-2">
+                      {categories.map(cat => (
+                        <div key={cat._id} className="flex justify-between items-center p-3 border rounded-lg bg-stone-50">
+                          <span className="font-medium text-stone-800">{cat.name}</span>
+                          <button onClick={() => handleDeleteCategory(cat._id)} className="text-red-500 p-1 hover:bg-red-100 rounded"><Trash2 size={16}/></button>
+                        </div>
+                      ))}
+                      {categories.length === 0 && <div className="text-sm text-stone-500">Chưa có bộ lọc nào</div>}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ===================== ORDERS TAB ===================== */}
+          {activeTab === 'orders' && (
+            <div className="space-y-4 animate-in fade-in duration-500 max-w-6xl mx-auto">
+              {orders.map(order => (
+                <div key={order._id} className="bg-white p-5 rounded-xl shadow-sm border border-stone-200/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="font-bold text-lg text-brand-900">{order.customerName}</span>
+                      <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold rounded-full">{order.customerPhone}</span>
+                      {order.status === 'PENDING' ? (
+                        <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Chờ Xác Nhận</span>
+                      ) : (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle size={12}/> Đã Đẩy AloShipp</span>
+                      )}
+                    </div>
+                    <p className="text-stone-600 text-sm mb-2"><MapPin size={14} className="inline mr-1" /> {order.deliveryAddress}</p>
+                    <div className="text-sm font-medium text-stone-500">
+                      {order.items.reduce((sum, i) => sum + i.quantity, 0)} sản phẩm
+                    </div>
+                    <button onClick={() => setSelectedOrder(order)} className="text-brand-600 hover:text-brand-800 text-sm font-bold flex items-center gap-1 mt-2">
+                      <Eye size={16} /> Xem chi tiết
+                    </button>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 w-full md:w-auto h-full justify-between border-t md:border-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-6">
+                    <div className="text-xl font-bold text-stone-900">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
+                    <div className="text-xs text-stone-400">{new Date(order.createdAt).toLocaleString('vi-VN')}</div>
+                    {order.status === 'PENDING' && (
+                      <button 
+                        onClick={() => handleConfirmOrder(order._id)}
+                        className="px-4 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm text-sm"
+                      >
+                        Xác nhận & Giao
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {orders.length === 0 && <div className="text-center py-10 text-stone-400">Chưa có đơn hàng nào.</div>}
+            </div>
+          )}
+
+          {/* ===================== CUSTOMERS TAB ===================== */}
           {activeTab === 'customers' && (
-            <div className="animate-in fade-in duration-500">
+            <div className="animate-in fade-in duration-500 max-w-5xl mx-auto">
               <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
                 <table className="w-full text-left">
                   <thead className="bg-stone-50 text-stone-600 font-medium border-b border-stone-200/60">
                     <tr>
                       <th className="px-6 py-4">Tên khách hàng</th>
                       <th className="px-6 py-4">Số điện thoại</th>
-                      <th className="px-6 py-4">Tổng số đơn</th>
+                      <th className="px-6 py-4 text-center">Đơn đã mua</th>
                       <th className="px-6 py-4 text-right">Tổng chi tiêu</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {customers.map(c => (
-                      <tr key={c._id} className="hover:bg-stone-50 transition-colors">
+                      <tr key={c._id} className="hover:bg-stone-50">
                         <td className="px-6 py-4 font-bold text-stone-800">{c.name}</td>
                         <td className="px-6 py-4 text-stone-600">{c.phone}</td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="px-3 py-1 bg-brand-100 text-brand-800 rounded-full font-bold text-xs">{c.totalOrders}</span>
-                        </td>
+                        <td className="px-6 py-4 text-center"><span className="px-3 py-1 bg-brand-100 text-brand-800 rounded-full font-bold text-xs">{c.totalOrders}</span></td>
                         <td className="px-6 py-4 text-right font-bold text-brand-700">{c.totalSpent.toLocaleString('vi-VN')} ₫</td>
                       </tr>
                     ))}
-                    {customers.length === 0 && (
-                      <tr>
-                        <td colSpan="4" className="px-6 py-8 text-center text-stone-400">Chưa có dữ liệu khách hàng.</td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>
@@ -381,134 +492,84 @@ export default function Admin() {
         </main>
       </div>
 
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={() => setSelectedOrder(null)}></div>
-          <div className="relative bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+      {/* ===================== MODALS ===================== */}
+      
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onClick={() => setEditingProduct(null)}></div>
+          <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-6 animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-stone-900 mb-4">Sửa Sản Phẩm</h2>
+            <form onSubmit={handleUpdateProduct} className="space-y-4">
               <div>
-                <h2 className="text-xl font-serif font-bold text-stone-900">Chi Tiết Đơn Hàng</h2>
-                <div className="text-sm text-stone-500 mt-1">Mã đơn: <span className="font-mono">{selectedOrder._id}</span></div>
+                <label className="text-xs font-bold text-stone-500 uppercase">Tên bánh</label>
+                <input name="name" type="text" defaultValue={editingProduct.name} required className="w-full px-4 py-2 mt-1 bg-stone-50 border rounded-lg" />
               </div>
-              <button onClick={() => setSelectedOrder(null)} className="px-4 py-2 text-sm font-medium text-stone-500 hover:text-stone-900 bg-white hover:bg-stone-100 rounded-lg shadow-sm border border-stone-200 transition-colors">Đóng</button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto space-y-6">
-              {/* Customer Info */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-stone-50 p-4 rounded-xl border border-stone-100">
-                  <span className="text-stone-500 block mb-1 font-medium uppercase tracking-wider text-[11px]">Khách hàng</span>
-                  <div className="font-bold text-stone-800 text-base">{selectedOrder.customerName}</div>
-                  <div className="text-brand-700 font-medium flex items-center gap-1 mt-1">{selectedOrder.customerPhone}</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-stone-500 uppercase">Giá (VNĐ)</label>
+                  <input name="price" type="number" defaultValue={editingProduct.price} required className="w-full px-4 py-2 mt-1 bg-stone-50 border rounded-lg" />
                 </div>
-                <div className="bg-stone-50 p-4 rounded-xl border border-stone-100">
-                  <span className="text-stone-500 block mb-1 font-medium uppercase tracking-wider text-[11px]">Trạng thái</span>
-                  <div className="mt-1">
-                    {selectedOrder.status === 'PENDING' ? (
-                      <span className="inline-flex px-3 py-1.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Chờ Xác Nhận</span>
-                    ) : (
-                      <span className="inline-flex px-3 py-1.5 bg-green-100 text-green-700 text-xs font-bold rounded-full items-center gap-1"><CheckCircle size={14}/> Đã đẩy sang AloShipp</span>
-                    )}
-                  </div>
+                <div>
+                  <label className="text-xs font-bold text-stone-500 uppercase">Bộ Lọc (Danh mục)</label>
+                  <select name="category" defaultValue={editingProduct.category} required className="w-full px-4 py-2 mt-1 bg-stone-50 border rounded-lg">
+                    {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                  </select>
                 </div>
               </div>
-              
-              <div className="bg-stone-50 p-4 rounded-xl text-sm border border-stone-100">
-                <span className="text-stone-500 block mb-2 font-medium uppercase tracking-wider text-[11px]">Địa chỉ giao hàng</span>
-                <div className="font-medium text-stone-800 flex items-start gap-2">
-                  <MapPin size={18} className="text-brand-600 mt-0.5 shrink-0" />
-                  <span className="leading-relaxed">{selectedOrder.deliveryAddress}</span>
-                </div>
-                {selectedOrder.note && (
-                  <div className="mt-3 text-brand-800 bg-brand-50 p-3 rounded-lg border border-brand-100">
-                    <span className="font-bold text-brand-900 uppercase tracking-wide mr-1">Ghi chú:</span> 
-                    {selectedOrder.note}
-                  </div>
-                )}
-              </div>
-
-              {/* Items */}
               <div>
-                <h3 className="font-bold text-stone-800 mb-3 text-sm uppercase tracking-wider">Chi tiết món</h3>
-                <div className="border border-stone-200 rounded-xl overflow-hidden shadow-sm">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-stone-50 text-stone-600 border-b border-stone-200">
-                      <tr>
-                        <th className="px-4 py-3 font-medium">Tên bánh</th>
-                        <th className="px-4 py-3 font-medium text-center">SL</th>
-                        <th className="px-4 py-3 font-medium text-right">Đơn giá</th>
-                        <th className="px-4 py-3 font-medium text-right">Thành tiền</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100 bg-white">
-                      {selectedOrder.items.map((i, idx) => (
-                        <tr key={idx} className="hover:bg-stone-50 transition-colors">
-                          <td className="px-4 py-3 font-medium text-stone-800">{i.name}</td>
-                          <td className="px-4 py-3 text-center text-stone-600 font-medium">x{i.quantity}</td>
-                          <td className="px-4 py-3 text-right text-stone-600">{i.price.toLocaleString('vi-VN')} ₫</td>
-                          <td className="px-4 py-3 text-right font-bold text-brand-700">{(i.price * i.quantity).toLocaleString('vi-VN')} ₫</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div className="bg-stone-50 p-4 flex flex-col gap-2 border-t border-stone-200">
-                    <div className="flex justify-between items-center text-stone-600">
-                      <span>Tạm tính</span>
-                      <span>{selectedOrder.subTotal ? selectedOrder.subTotal.toLocaleString('vi-VN') : selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
-                    </div>
-                    {selectedOrder.discountCode && (
-                      <div className="flex justify-between items-center text-green-600 font-medium">
-                        <span>Mã giảm giá ({selectedOrder.discountCode})</span>
-                        <span>-{selectedOrder.discountAmount.toLocaleString('vi-VN')} ₫</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center font-bold text-stone-800 uppercase tracking-wide mt-2 pt-2 border-t border-stone-200">
-                      <span>Tổng cộng</span>
-                      <span className="text-2xl font-bold text-brand-700">{selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
-                    </div>
-                  </div>
-                </div>
+                <label className="text-xs font-bold text-stone-500 uppercase">Mô tả</label>
+                <input name="description" type="text" defaultValue={editingProduct.description} className="w-full px-4 py-2 mt-1 bg-stone-50 border rounded-lg" />
               </div>
-              
-              <div className="text-center text-xs text-stone-400">
-                Đơn hàng được tạo lúc {new Date(selectedOrder.createdAt).toLocaleString('vi-VN')}
+              <div>
+                <label className="text-xs font-bold text-stone-500 uppercase">Ảnh mới (bỏ trống nếu giữ cũ)</label>
+                <input name="imageFile" type="file" accept="image/*" className="w-full text-sm mt-1" />
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="p-4 border-t border-stone-100 bg-stone-50 flex justify-end gap-3 rounded-b-2xl">
-              <button onClick={() => setSelectedOrder(null)} className="px-6 py-2.5 bg-white text-stone-700 font-bold rounded-xl hover:bg-stone-100 border border-stone-200 shadow-sm transition-colors">Đóng lại</button>
-              {selectedOrder.status === 'PENDING' && (
-                <button 
-                  onClick={() => {
-                    handleConfirmOrder(selectedOrder._id);
-                    setSelectedOrder(null);
-                  }}
-                  className="px-6 py-2.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                >
-                  <CheckCircle size={18} />
-                  Xác nhận & Giao hàng
-                </button>
-              )}
-            </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-stone-100">
+                <button type="button" onClick={() => setEditingProduct(null)} className="px-4 py-2 text-stone-600 font-bold bg-stone-100 rounded-lg hover:bg-stone-200">Huỷ</button>
+                <button type="submit" className="px-4 py-2 text-white font-bold bg-brand-600 rounded-lg hover:bg-brand-700">Lưu thay đổi</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Mobile Bottom Navigation for Admin */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-stone-200 flex justify-around items-end pb-6 pt-3 px-2 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        {menuItems.map(item => (
-          <button 
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center gap-1.5 w-[20%] transition-colors ${activeTab === item.id ? 'text-brand-900' : 'text-stone-400 hover:text-brand-900'}`}
-          >
-            <item.icon size={22} strokeWidth={activeTab === item.id ? 2.5 : 2} />
-            <span className="text-[10px] font-bold uppercase tracking-wider line-clamp-1">{item.label}</span>
-          </button>
-        ))}
-      </div>
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={() => setSelectedOrder(null)}></div>
+          <div className="relative bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col p-6 max-h-[90vh]">
+             <div className="flex justify-between items-center mb-4">
+               <h2 className="text-xl font-bold">Chi Tiết Đơn Hàng</h2>
+               <button onClick={() => setSelectedOrder(null)} className="p-1"><X/></button>
+             </div>
+             <div className="overflow-y-auto pr-2 space-y-4">
+               {/* Same details logic as before */}
+               <div className="bg-stone-50 p-4 rounded-xl">
+                 <p><strong>Khách hàng:</strong> {selectedOrder.customerName} - {selectedOrder.customerPhone}</p>
+                 <p><strong>Địa chỉ:</strong> {selectedOrder.deliveryAddress}</p>
+                 <p><strong>Ghi chú:</strong> {selectedOrder.note || 'Không có'}</p>
+               </div>
+               <div className="border rounded-xl p-4">
+                 {selectedOrder.items.map((i, idx) => (
+                   <div key={idx} className="flex justify-between py-2 border-b last:border-0">
+                     <span>{i.name} x{i.quantity}</span>
+                     <span className="font-bold text-brand-600">{(i.price * i.quantity).toLocaleString('vi-VN')} ₫</span>
+                   </div>
+                 ))}
+                 <div className="flex justify-between pt-3 mt-2 border-t font-bold">
+                   <span>Tổng đơn</span>
+                   <span className="text-brand-700">{selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
+                 </div>
+               </div>
+             </div>
+             {selectedOrder.status === 'PENDING' && (
+                <button onClick={() => { handleConfirmOrder(selectedOrder._id); setSelectedOrder(null); }} className="w-full mt-4 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận & Giao</button>
+             )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

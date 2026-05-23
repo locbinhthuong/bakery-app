@@ -4,8 +4,8 @@ import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket } from 'lucide-react
 export default function Home() {
   const { products, addToCart, customer } = useOutletContext();
 
-  // Mocking "Món bán chạy" - use first 4 products
-  const bestSellers = products.slice(0, 4);
+  // Get products marked as best sellers
+  const bestSellers = products.filter(p => p.isBestSeller);
 
   return (
     <div className="pb-20">

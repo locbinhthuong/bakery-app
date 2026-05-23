@@ -8,6 +8,7 @@ const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'ht
 export default function CustomerLayout() {
   const [products, setProducts] = useState([]);
   const [promos, setPromos] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCheckout, setIsCheckout] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', address: '', note: '' });
@@ -33,6 +34,10 @@ export default function CustomerLayout() {
       
     axios.get(`${BACKEND_URL}/promos`)
       .then(res => setPromos(res.data.data))
+      .catch(err => console.error(err));
+
+    axios.get(`${BACKEND_URL}/categories`)
+      .then(res => setCategories(res.data.data))
       .catch(err => console.error(err));
       
     const token = localStorage.getItem('bakery_token');
@@ -165,7 +170,7 @@ export default function CustomerLayout() {
 
       {/* Main Content Area */}
       <div className="min-h-[70vh]">
-        <Outlet context={{ products, promos, addToCart, customer, updateCustomer, isCheckout, setIsCheckout }} />
+        <Outlet context={{ products, promos, categories, addToCart, customer, updateCustomer, isCheckout, setIsCheckout }} />
       </div>
 
       {/* Footer / Store info (Hidden on mobile to match App feel) */}

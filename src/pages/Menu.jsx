@@ -3,21 +3,39 @@ import { Search, Plus, Info } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 export default function Menu() {
-  const { products, addToCart } = useOutletContext();
+  const { products, categories: dbCategories, addToCart } = useOutletContext();
   const [activeTab, setActiveTab] = useState('');
 
-  // Group products by category
-  const categories = useMemo(() => {
+  // Use categories from DB to ensure Admin controls the order and existence
+  const categoryNames = useMemo(() => {
+    if (dbCategories && dbCategories.length > 0) {
+      return dbCategories.map(c => c.name);
+    }
+    // Fallback if no categories in DB
+    const names = new Set();
+    products.forEach(p => names.add(p.category || 'Khác'));
+    return Array.from(names);
+  }, [dbCategories, products]);
+
+  // Group products by those category names
+  const productGroups = useMemo(() => {
     const groups = {};
+    categoryNames.forEach(name => groups[name] = []);
     products.forEach(p => {
       const cat = p.category || 'Khác';
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(p);
+      if (groups[cat]) {
+        groups[cat].push(p);
+      } else {
+        // If product has a category not in DB, put it in 'Khác' or ignore. Let's put in 'Khác'.
+        if (!groups['Khác']) {
+          groups['Khác'] = [];
+          categoryNames.push('Khác');
+        }
+        groups['Khác'].push(p);
+      }
     });
     return groups;
-  }, [products]);
-
-  const categoryNames = Object.keys(categories);
+  }, [products, categoryNames]);
   if (categoryNames.length > 0 && !activeTab) {
     setActiveTab(categoryNames[0]);
   }
@@ -70,7 +88,7 @@ export default function Menu() {
             <h2 className="text-xl font-bold text-brand-900 mb-4">{cat}</h2>
             
             <div className="space-y-3">
-              {categories[cat].map(product => (
+              {productGroups[cat].map(product => (
                 <div key={product._id} className="bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 flex gap-4 relative overflow-hidden">
                   <div className="absolute top-2 left-0 bg-brand-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-r">MỚI</div>
                   
