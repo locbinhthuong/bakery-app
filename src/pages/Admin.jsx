@@ -61,8 +61,12 @@ export default function Admin() {
         try {
           const base64Image = reader.result;
           const res = await axios.post(`${BACKEND_URL}/admin/upload`, { image: base64Image });
-          const baseUrl = BACKEND_URL.replace('/api/shop', '');
-          resolve(baseUrl + res.data.url);
+          if (res.data.url.startsWith('http')) {
+            resolve(res.data.url);
+          } else {
+            const baseUrl = BACKEND_URL.replace('/api/shop', '');
+            resolve(baseUrl + res.data.url);
+          }
         } catch (err) {
           console.error('Lỗi upload ảnh:', err);
           resolve(null);
