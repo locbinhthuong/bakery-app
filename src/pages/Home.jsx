@@ -32,15 +32,15 @@ export default function Home() {
 
       {/* Hero Banner Slider (Mocked as single image for now) */}
       <div className="px-4 mb-4">
-        <div className="w-full aspect-[4/3] rounded-3xl overflow-hidden relative shadow-md">
+        <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden relative shadow-md">
           <img 
-            src="https://images.unsplash.com/photo-1551024506-0cb4a1cb1c75?q=80&w=2000&auto=format&fit=crop" 
+            src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?q=80&w=2000&auto=format&fit=crop" 
             alt="Banner" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-6">
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-900/60 to-transparent flex flex-col justify-end p-6">
             <h2 className="text-white font-serif text-3xl font-bold mb-1">Mẻ Bánh Mới</h2>
-            <p className="text-white/90 text-sm font-medium">Đậm đà hương vị đặc sản</p>
+            <p className="text-brand-50 text-sm font-medium">Ngọt ngào hương vị Pháp</p>
           </div>
           {/* Pagination dots */}
           <div className="absolute bottom-3 w-full flex justify-center gap-1.5">

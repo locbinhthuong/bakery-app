@@ -7,18 +7,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Phê La Inspired Colors - Warm beige, brown and orange
+        // Sweet Bakery Inspired Colors - Rose and Cream
         brand: {
-          50: '#fcf8f0', // Nền chung
-          100: '#f5ead5', // Nền khối/card
-          200: '#edd8b2',
-          300: '#e3c28a',
-          400: '#d9a764',
-          500: '#c58341', // Nút bấm cam đất
-          600: '#b06b37', // Cam đậm
-          700: '#925230', // Nâu nhạt
-          800: '#756961', // Chữ không active
-          900: '#533a29', // Chữ active / Tiêu đề chính
+          50: '#fff1f2', // Nền chung siêu nhạt
+          100: '#ffe4e6', // Nền khối/card
+          200: '#fecdd3', // Border, hover
+          300: '#fda4af',
+          400: '#fb7185',
+          500: '#f43f5e', // Nút bấm chính, Icon chính (Hồng đậm)
+          600: '#e11d48', // Nút hover
+          700: '#be123c',
+          800: '#9f1239', // Chữ không active hoặc chữ nổi
+          900: '#881337', // Tiêu đề chính (Đỏ cherry đậm)
         },
         surface: {
           light: '#ffffff',

@@ -179,17 +179,17 @@ export default function CustomerLayout() {
           <div className="grid grid-cols-4 gap-12 mb-16">
             <div className="col-span-2">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-brand-900 rounded-full flex items-center justify-center text-brand-50">
+                <div className="w-12 h-12 bg-brand-600 rounded-full flex items-center justify-center text-brand-50 shadow-md">
                   <CakeSlice size={24} />
                 </div>
-                <span className="text-3xl font-serif font-bold tracking-tight">Le Petit</span>
+                <span className="text-3xl font-serif font-bold tracking-tight text-brand-900">Le Petit Bakery</span>
               </div>
               <p className="text-brand-800 leading-relaxed max-w-sm mb-8">
-                Đánh thức những nốt hương đặc sản của nông sản Việt Nam qua từng mẻ bánh thủ công.
+                Mang đến hương vị ngọt ngào và lãng mạn từ những mẻ bánh Pháp thủ công, được nướng bằng cả trái tim.
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-bold mb-6">Hệ thống cửa hàng</h4>
+              <h4 className="text-lg font-bold mb-6 text-brand-900">Hệ thống cửa hàng</h4>
               <ul className="space-y-4 text-brand-800">
                 <li className="flex gap-3">
                   <MapPin size={20} className="shrink-0 text-brand-600" />
@@ -198,7 +198,7 @@ export default function CustomerLayout() {
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-bold mb-6">Hỗ trợ khách hàng</h4>
+              <h4 className="text-lg font-bold mb-6 text-brand-900">Hỗ trợ khách hàng</h4>
               <ul className="space-y-4 text-brand-800">
                 <li className="flex items-center gap-3">
                   <Phone size={18} className="text-brand-600" />
@@ -207,8 +207,8 @@ export default function CustomerLayout() {
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-brand-100 text-center text-sm text-brand-800/60 font-medium">
-            © 2026 Le Petit Bakery. Inspired by Phê La.
+          <div className="pt-8 border-t border-brand-200 text-center text-sm text-brand-800/60 font-medium">
+            © 2026 Le Petit Bakery. All rights reserved.
           </div>
         </div>
       </footer>

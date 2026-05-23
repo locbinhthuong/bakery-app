@@ -76,8 +76,8 @@ export default function Menu() {
       </div>
 
       {/* Warning Banner */}
-      <div className="bg-orange-300 text-brand-900 px-4 py-3 text-sm font-medium flex items-start gap-2 shadow-sm mb-4 sticky top-[125px] z-20">
-        <Info size={18} className="shrink-0 mt-0.5" />
+      <div className="bg-brand-200/80 text-brand-900 px-4 py-3 text-sm font-medium flex items-start gap-2 shadow-sm mb-4 sticky top-[125px] z-20">
+        <Info size={18} className="shrink-0 mt-0.5 text-brand-600" />
         <span>Đã hết giờ nhận đơn, cửa hàng hẹn bạn 07:30 mỗi ngày để thưởng thức tiếp!</span>
       </div>
 
