@@ -6,7 +6,7 @@ const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'ht
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('home');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
   
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
@@ -204,8 +204,8 @@ export default function Admin() {
     <div className="min-h-screen bg-stone-100 flex font-sans text-stone-800">
       
       {/* Sidebar Overlay (Mobile) */}
-      {!isSidebarOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setIsSidebarOpen(true)}></div>
+      {isSidebarOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setIsSidebarOpen(false)}></div>
       )}
 
       {/* Sidebar */}
