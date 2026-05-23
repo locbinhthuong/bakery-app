@@ -371,7 +371,14 @@ export default function CustomerLayout() {
                       value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})}
                     />
                     
-                    <button type="button" onClick={() => setIsMapOpen(true)} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
+                    <button type="button" onClick={() => {
+                      setIsMapOpen(true);
+                      if (navigator.geolocation && !customerLocation) {
+                        navigator.geolocation.getCurrentPosition((pos) => {
+                          setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                        });
+                      }
+                    }} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
                       <Navigation size={18} className="text-brand-600"/> 
                       {customerLocation ? 'Đã ghim vị trí (Sửa)' : 'Ghim vị trí nhận hàng (Tính ship)'}
                     </button>
@@ -398,7 +405,7 @@ export default function CustomerLayout() {
       )}
 
       {/* Map Picker Modal */}
-      {isMapOpen && settings && (
+      {isMapOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onClick={() => setIsMapOpen(false)}></div>
           <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
@@ -407,10 +414,10 @@ export default function CustomerLayout() {
                <button onClick={() => setIsMapOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-800"><X size={18}/></button>
              </div>
              <div className="p-4 bg-stone-50 text-sm text-stone-600 font-medium">
-               Hãy cho phép truy cập GPS hoặc chạm vào bản đồ để chọn chính xác điểm giao.
+               Bản đồ sẽ tự định vị bạn (GPS). Bạn có thể chạm để chọn chính xác điểm giao.
              </div>
              <div className="h-[60vh] w-full relative z-0">
-                <MapContainer center={customerLocation || [settings.storeLocation.lat, settings.storeLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={customerLocation || (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [21.0285, 105.8542])} zoom={15} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <LocationMarker 
                     position={customerLocation} 
