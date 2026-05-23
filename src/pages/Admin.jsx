@@ -199,18 +199,21 @@ export default function Admin() {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         {/* Header */}
-        <header className="bg-white px-8 py-6 flex justify-between items-center shadow-sm sticky top-0 z-10">
-          <h1 className="text-2xl font-serif font-bold text-stone-900">
+        <header className="bg-white px-4 md:px-8 py-4 md:py-6 flex justify-between items-center shadow-sm sticky top-0 z-10">
+          <h1 className="text-xl md:text-2xl font-serif font-bold text-stone-900">
             {menuItems.find(i => i.id === activeTab)?.label}
           </h1>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-brand-200 flex items-center justify-center text-brand-900 font-bold">A</div>
-            <span className="font-medium">Admin</span>
+            <span className="font-medium hidden md:block">Admin</span>
+            <button onClick={() => { localStorage.removeItem('bakery_token'); window.location.href='/'; }} className="md:hidden ml-1 p-2 text-stone-500 hover:text-red-500 transition-colors bg-stone-50 rounded-full" title="Đăng xuất">
+              <LogOut size={18} />
+            </button>
           </div>
         </header>
 
         {/* Content */}
-        <main className="p-8 max-w-6xl mx-auto">
+        <main className="p-4 md:p-8 pb-28 md:pb-8 max-w-6xl mx-auto">
           
           {/* ORDERS TAB */}
           {activeTab === 'orders' && (
@@ -457,6 +460,20 @@ export default function Admin() {
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation for Admin */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-stone-200 flex justify-around items-end pb-6 pt-3 px-2 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        {menuItems.map(item => (
+          <button 
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className={`flex flex-col items-center gap-1.5 w-[20%] transition-colors ${activeTab === item.id ? 'text-brand-900' : 'text-stone-400 hover:text-brand-900'}`}
+          >
+            <item.icon size={22} strokeWidth={activeTab === item.id ? 2.5 : 2} />
+            <span className="text-[10px] font-bold uppercase tracking-wider line-clamp-1">{item.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
