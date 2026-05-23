@@ -7,18 +7,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Sweet Bakery Inspired Colors - Rose and Cream
+        // Soft Bakery (Dusty Pink / Nude Pink) - Elegant and not garish
         brand: {
-          50: '#fff1f2', // Nền chung siêu nhạt
-          100: '#ffe4e6', // Nền khối/card
-          200: '#fecdd3', // Border, hover
-          300: '#fda4af',
-          400: '#fb7185',
-          500: '#f43f5e', // Nút bấm chính, Icon chính (Hồng đậm)
-          600: '#e11d48', // Nút hover
-          700: '#be123c',
-          800: '#9f1239', // Chữ không active hoặc chữ nổi
-          900: '#881337', // Tiêu đề chính (Đỏ cherry đậm)
+          50: '#fdf8f9', // Rất nhạt
+          100: '#f9eced', // Nền khối/card
+          200: '#f1d6d9', // Border
+          300: '#e5b6bc', 
+          400: '#d58d97',
+          500: '#c56b77', // Nút bấm chính (Hồng đất nhẹ)
+          600: '#ab4f5d', // Nút hover
+          700: '#8e3e49',
+          800: '#76353f',
+          900: '#643038', // Tiêu đề chính
         },
         surface: {
           light: '#ffffff',

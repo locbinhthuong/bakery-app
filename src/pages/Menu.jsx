@@ -55,8 +55,8 @@ export default function Menu() {
       {/* Header */}
       <div className="sticky top-0 bg-brand-50 z-30 pt-12 pb-2 px-4 shadow-sm border-b border-brand-100">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-brand-900">Đặt hàng</h1>
-          <button className="w-10 h-10 rounded-full bg-brand-200/50 flex items-center justify-center text-brand-900">
+          <h1 className="text-2xl font-serif font-bold text-stone-900">Thực đơn</h1>
+          <button className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-stone-700">
             <Search size={20} />
           </button>
         </div>
@@ -67,7 +67,7 @@ export default function Menu() {
             <button 
               key={cat}
               onClick={() => scrollToCategory(cat)}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors border ${activeTab === cat ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-800 border-brand-200'}`}
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors border ${activeTab === cat ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-stone-600 border-stone-200'}`}
             >
               {cat}
             </button>
@@ -75,17 +75,13 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Warning Banner */}
-      <div className="bg-brand-200/80 text-brand-900 px-4 py-3 text-sm font-medium flex items-start gap-2 shadow-sm mb-4 sticky top-[125px] z-20">
-        <Info size={18} className="shrink-0 mt-0.5 text-brand-600" />
-        <span>Đã hết giờ nhận đơn, cửa hàng hẹn bạn 07:30 mỗi ngày để thưởng thức tiếp!</span>
-      </div>
+
 
       {/* Product List */}
       <div className="px-4 space-y-8 mt-4">
         {categoryNames.map(cat => (
           <div key={cat} id={`cat-${cat}`} className="pt-2">
-            <h2 className="text-xl font-bold text-brand-900 mb-4">{cat}</h2>
+            <h2 className="text-xl font-serif font-bold text-stone-900 mb-4">{cat}</h2>
             
             <div className="space-y-3">
               {productGroups[cat].map(product => (
@@ -104,8 +100,8 @@ export default function Menu() {
                   
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <div>
-                      <h3 className="font-bold text-brand-900 text-base leading-snug line-clamp-2 mb-1">{product.name}</h3>
-                      <p className="text-xs text-brand-600 line-clamp-1">{product.description}</p>
+                      <h3 className="font-bold text-stone-900 text-base leading-snug line-clamp-2 mb-1">{product.name}</h3>
+                      <p className="text-xs text-stone-500 line-clamp-1">{product.description}</p>
                     </div>
                     <div className="text-brand-600 font-bold text-sm">
                       {product.price.toLocaleString('vi-VN')}

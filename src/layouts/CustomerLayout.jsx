@@ -179,18 +179,18 @@ export default function CustomerLayout() {
           <div className="grid grid-cols-4 gap-12 mb-16">
             <div className="col-span-2">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-brand-600 rounded-full flex items-center justify-center text-brand-50 shadow-md">
+                <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center text-white shadow-md">
                   <CakeSlice size={24} />
                 </div>
-                <span className="text-3xl font-serif font-bold tracking-tight text-brand-900">Le Petit Bakery</span>
+                <span className="text-3xl font-serif font-bold tracking-tight text-stone-900">Le Petit Bakery</span>
               </div>
-              <p className="text-brand-800 leading-relaxed max-w-sm mb-8">
+              <p className="text-stone-600 leading-relaxed max-w-sm mb-8 mt-6">
                 Mang đến hương vị ngọt ngào và lãng mạn từ những mẻ bánh Pháp thủ công, được nướng bằng cả trái tim.
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-bold mb-6 text-brand-900">Hệ thống cửa hàng</h4>
-              <ul className="space-y-4 text-brand-800">
+              <h4 className="text-lg font-bold mb-6 text-stone-900">Hệ thống cửa hàng</h4>
+              <ul className="space-y-4 text-stone-600">
                 <li className="flex gap-3">
                   <MapPin size={20} className="shrink-0 text-brand-600" />
                   <span>289 Đinh Bộ Lĩnh, Bình Thạnh, TP. HCM</span>
@@ -198,16 +198,16 @@ export default function CustomerLayout() {
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-bold mb-6 text-brand-900">Hỗ trợ khách hàng</h4>
-              <ul className="space-y-4 text-brand-800">
+              <h4 className="text-lg font-bold mb-6 text-stone-900">Hỗ trợ khách hàng</h4>
+              <ul className="space-y-4 text-stone-600">
                 <li className="flex items-center gap-3">
-                  <Phone size={18} className="text-brand-600" />
+                  <Phone size={18} className="text-brand-500" />
                   <span className="font-bold">1900 3013</span>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-brand-200 text-center text-sm text-brand-800/60 font-medium">
+          <div className="pt-8 border-t border-brand-200 text-center text-sm text-stone-500 font-medium">
             © 2026 Le Petit Bakery. All rights reserved.
           </div>
         </div>
@@ -218,8 +218,8 @@ export default function CustomerLayout() {
         <div className="fixed inset-0 z-[100] flex justify-end">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setIsCheckout(false)}></div>
           <div className="relative w-full max-w-md bg-brand-50 h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="p-4 md:p-6 border-b border-brand-200/50 flex justify-between items-center bg-white">
-              <h2 className="text-xl md:text-2xl font-bold text-brand-900">Giỏ Hàng</h2>
+            <div className="p-4 md:p-6 border-b border-stone-200 flex justify-between items-center bg-white">
+              <h2 className="text-xl md:text-2xl font-serif font-bold text-stone-900">Giỏ Hàng</h2>
               <button onClick={() => setIsCheckout(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-brand-50 text-brand-800 hover:bg-brand-100"><X size={20}/></button>
             </div>
             
@@ -238,28 +238,28 @@ export default function CustomerLayout() {
                         {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-brand-300"><CakeSlice size={24}/></div>}
                       </div>
                       <div className="flex-1 py-1">
-                        <div className="font-bold text-brand-900 leading-tight mb-1">{item.name}</div>
-                        <div className="text-sm text-brand-600 font-medium">{item.price.toLocaleString('vi-VN')} ₫ <span className="text-brand-400">x {item.quantity}</span></div>
+                        <div className="font-bold text-stone-900 leading-tight mb-1">{item.name}</div>
+                        <div className="text-sm text-brand-600 font-medium">{item.price.toLocaleString('vi-VN')} ₫ <span className="text-stone-500">x {item.quantity}</span></div>
                       </div>
-                      <div className="font-bold text-brand-900 py-1">
+                      <div className="font-bold text-stone-900 py-1">
                         {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
                       </div>
                     </div>
                   ))}
                   <div className="bg-white p-4 rounded-2xl shadow-sm border border-brand-100/50 space-y-3">
-                    <div className="flex justify-between items-center text-brand-800 text-sm font-medium">
+                    <div className="flex justify-between items-center text-stone-600 text-sm font-medium">
                       <span>Tạm tính</span>
                       <span>{totalAmount.toLocaleString('vi-VN')} ₫</span>
                     </div>
                     {appliedPromo && (
-                      <div className="flex justify-between items-center text-green-600 text-sm font-bold bg-green-50 px-3 py-2 rounded-xl">
+                      <div className="flex justify-between items-center text-brand-600 text-sm font-bold bg-brand-50 px-3 py-2 rounded-xl">
                         <span>Khuyến mãi ({appliedPromo.code})</span>
                         <span>-{appliedPromo.discountAmount.toLocaleString('vi-VN')} ₫</span>
                       </div>
                     )}
-                    <div className="pt-3 border-t border-brand-100/50 flex justify-between items-center text-lg font-bold text-brand-900">
+                    <div className="pt-3 border-t border-brand-100/50 flex justify-between items-center text-lg font-bold text-stone-900">
                       <span>Tổng cộng</span>
-                      <span className="text-brand-600">{finalAmount.toLocaleString('vi-VN')} ₫</span>
+                      <span className="text-brand-600 text-xl">{finalAmount.toLocaleString('vi-VN')} ₫</span>
                     </div>
                   </div>
                 </div>

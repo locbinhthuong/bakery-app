@@ -12,7 +12,7 @@ export default function Promos() {
     <div className="pb-24 bg-brand-50 min-h-screen">
       {/* Header */}
       <div className="pt-12 pb-4 px-4 bg-white shadow-sm sticky top-0 z-20">
-        <h1 className="text-xl font-bold text-brand-900 text-center mb-6">Ưu đãi của bạn</h1>
+        <h1 className="text-xl font-serif font-bold text-stone-900 text-center mb-6">Ưu đãi của bạn</h1>
         
         {/* Main Tabs */}
         <div className="flex border-b border-brand-200">
@@ -40,9 +40,9 @@ export default function Promos() {
           </button>
           <button 
             onClick={() => setActiveSubTab('doi_diem')}
-            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-colors border ${activeSubTab === 'doi_diem' ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-800 border-brand-500'}`}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-colors border ${activeSubTab === 'doi_diem' ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-stone-600 border-stone-200'}`}
           >
-            Đổi nốt nhạc
+            Đổi điểm
           </button>
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function Promos() {
         </div>
 
         {/* Promos List */}
-        <h2 className="text-lg font-bold text-brand-900 mb-4">Ưu đãi giao hàng</h2>
+        <h2 className="text-lg font-serif font-bold text-stone-900 mb-4">Mã ưu đãi</h2>
         
         <div className="space-y-4">
           {promos.map(promo => (
@@ -77,7 +77,7 @@ export default function Promos() {
                 <span className="text-xs font-bold mt-1 uppercase text-center px-1">Giảm Giá</span>
               </div>
               <div className="flex-1 p-4">
-                <h3 className="font-bold text-brand-900 text-base mb-1">{promo.title || 'Ưu đãi đặc biệt'}</h3>
+                <h3 className="font-bold text-stone-900 text-base mb-1">{promo.title || 'Ưu đãi đặc biệt'}</h3>
                 <p className="text-sm text-brand-800/80 leading-snug line-clamp-2 mb-2">
                   + {promo.content || 'Áp dụng cho mọi đơn hàng thỏa điều kiện.'}
                 </p>
@@ -102,7 +102,7 @@ export default function Promos() {
                 <Truck size={36} strokeWidth={1.5} />
               </div>
               <div className="flex-1 p-4">
-                <h3 className="font-bold text-brand-900 text-base mb-1">Ưu đãi giao hàng</h3>
+                <h3 className="font-bold text-stone-900 text-base mb-1">Ưu đãi giao hàng</h3>
                 <p className="text-sm text-brand-800/80 leading-snug line-clamp-2">
                   + Áp dụng cho phương thức Giao Tận Nơi tại toàn bộ cửa hàng Le Petit...
                 </p>

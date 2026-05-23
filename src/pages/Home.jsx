@@ -10,24 +10,10 @@ export default function Home() {
   return (
     <div className="pb-20">
       {/* Top Header Section */}
-      <div className="pt-12 px-4 flex justify-between items-start mb-4">
-        <div>
-          <div className="text-brand-800 text-sm font-medium mb-1 flex items-center gap-1">
-            Chào buổi tối <span className="text-lg">🌙</span>
-          </div>
-          <div className="text-brand-500 text-xl font-bold">
-            {customer ? customer.name : 'Khách vãng lai'}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Link to="/promos" className="flex items-center gap-1.5 bg-brand-200/50 text-brand-900 px-3 py-1.5 rounded-full shadow-sm">
-            <Ticket size={18} className="text-brand-600" />
-            <span className="font-bold text-sm">1</span>
-          </Link>
-          <button className="w-9 h-9 rounded-full bg-brand-200/50 flex items-center justify-center text-brand-900 shadow-sm">
-            <Bell size={18} />
-          </button>
-        </div>
+      <div className="pt-10 px-4 pb-4">
+        <h1 className="text-2xl font-serif font-bold text-stone-900 text-center tracking-wide">
+          Le Petit Bakery
+        </h1>
       </div>
 
       {/* Hero Banner Slider (Mocked as single image for now) */}
@@ -70,8 +56,8 @@ export default function Home() {
 
       {/* Best Sellers Section */}
       <div className="pl-4 mb-8">
-        <h3 className="text-xl font-bold text-brand-900 mb-4 flex items-center gap-2">
-          Món bán chạy <span className="text-xl">🔥</span>
+        <h3 className="text-xl font-serif font-bold text-stone-900 mb-4 flex items-center gap-2">
+          Sản phẩm nổi bật
         </h3>
         
         <div className="flex overflow-x-auto gap-4 pb-4 pr-4 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
@@ -93,8 +79,8 @@ export default function Home() {
                   <ShoppingBag size={14} strokeWidth={2.5}/>
                 </button>
               </div>
-              <h4 className="font-bold text-brand-900 text-sm leading-snug mb-1 line-clamp-2">{product.name}</h4>
-              <div className="text-brand-600 font-bold text-sm">{product.price.toLocaleString('vi-VN')}</div>
+              <h4 className="font-bold text-stone-900 text-sm leading-snug mb-1 line-clamp-2">{product.name}</h4>
+              <div className="text-brand-600 font-bold text-sm">{product.price.toLocaleString('vi-VN')} ₫</div>
             </div>
           ))}
           {bestSellers.length === 0 && (
