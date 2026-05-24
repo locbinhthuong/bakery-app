@@ -137,10 +137,10 @@ export default function Profile() {
         <div className="mb-8">
           <h3 className="font-bold text-stone-900 text-lg mb-4 px-1">Tiện ích</h3>
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white rounded-2xl p-4 flex flex-col items-start gap-3 shadow-sm border border-stone-100">
+            <Link to="/orders" className="bg-white rounded-2xl p-4 flex flex-col items-start gap-3 shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
               <Clock size={28} className="text-brand-500" strokeWidth={1.5}/>
               <span className="font-bold text-stone-900 text-sm leading-tight">Lịch sử đặt<br/>hàng</span>
-            </div>
+            </Link>
             <div className="bg-white rounded-2xl p-4 flex flex-col items-start gap-3 shadow-sm border border-stone-100">
               <CheckCircle2 size={28} className="text-brand-500" strokeWidth={1.5}/>
               <span className="font-bold text-stone-900 text-sm leading-tight">Lịch sử<br/>điểm</span>

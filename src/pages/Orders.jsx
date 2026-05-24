@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Clock, CheckCircle, ChevronLeft, MapPin } from 'lucide-react';
+import { Package, Clock, CheckCircle, ChevronLeft, MapPin, Eye, X } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
@@ -9,6 +9,7 @@ const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'ht
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     let socket;
@@ -116,18 +117,87 @@ export default function Orders() {
                   ))}
                 </div>
                 
-                <div className="bg-stone-50 rounded-xl p-3 flex gap-3 text-sm text-stone-600">
+                <div className="bg-stone-50 rounded-xl p-3 flex gap-3 text-sm text-stone-600 mb-3">
                   <MapPin size={18} className="text-stone-400 shrink-0 mt-0.5" />
                   <div>
                     <div className="font-medium text-stone-800 mb-1">{order.customerName} - {order.customerPhone} <span className={`ml-2 px-2 py-0.5 text-[10px] font-bold rounded ${order.deliveryMethod === 'PICKUP' ? 'bg-indigo-100 text-indigo-700' : 'bg-stone-200 text-stone-700'}`}>{order.deliveryMethod === 'PICKUP' ? 'ĐẾN LẤY' : 'GIAO TẬN NƠI'}</span></div>
                     <div className="line-clamp-2">{order.deliveryMethod === 'PICKUP' ? `Hẹn lấy tại quán lúc: ${new Date(order.pickupTime).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'})}` : order.deliveryAddress}</div>
                   </div>
                 </div>
+                
+                <button 
+                  onClick={() => setSelectedOrder(order)}
+                  className="w-full py-2.5 bg-brand-50 text-brand-700 font-bold rounded-xl hover:bg-brand-100 transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <Eye size={16} /> Xem chi tiết đơn
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onClick={() => setSelectedOrder(null)}></div>
+          <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-6 max-h-[90vh]">
+             <div className="flex justify-between items-center mb-4">
+               <h2 className="text-xl font-bold font-serif">Chi Tiết Đơn Hàng</h2>
+               <button onClick={() => setSelectedOrder(null)} className="p-1 text-stone-400 hover:bg-stone-100 rounded-full"><X size={20}/></button>
+             </div>
+             
+             <div className="overflow-y-auto pr-1 space-y-4">
+               <div className="bg-stone-50 p-4 rounded-xl text-sm text-stone-700 space-y-2 border border-stone-100">
+                 <p><span className="font-bold text-stone-900">Hình thức:</span> {selectedOrder.deliveryMethod === 'PICKUP' ? 'Đến lấy tại quán' : 'Giao hàng tận nơi'}</p>
+                 <p><span className="font-bold text-stone-900">Khách hàng:</span> {selectedOrder.customerName} - {selectedOrder.customerPhone}</p>
+                 <p><span className="font-bold text-stone-900">{selectedOrder.deliveryMethod === 'PICKUP' ? 'Thời gian hẹn lấy:' : 'Địa chỉ giao:'}</span> {selectedOrder.deliveryMethod === 'PICKUP' ? new Date(selectedOrder.pickupTime).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}) : selectedOrder.deliveryAddress}</p>
+                 {selectedOrder.note && <p><span className="font-bold text-stone-900">Ghi chú:</span> {selectedOrder.note}</p>}
+               </div>
+               
+               <div>
+                 <h3 className="font-bold text-brand-900 mb-3 border-b border-stone-100 pb-2">Danh sách món ({selectedOrder.items.reduce((acc, i) => acc + i.quantity, 0)})</h3>
+                 <div className="space-y-3">
+                   {selectedOrder.items.map((i, idx) => (
+                     <div key={idx} className="flex justify-between items-center text-sm">
+                       <div>
+                         <span className="font-bold text-brand-600 mr-2">{i.quantity}x</span>
+                         <span className="font-medium text-stone-800">{i.name}</span>
+                       </div>
+                       <span className="font-bold text-stone-600">{(i.price * i.quantity).toLocaleString('vi-VN')} ₫</span>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+
+               <div className="bg-brand-50 p-4 rounded-xl mt-4">
+                 <div className="flex justify-between text-sm mb-2 text-stone-600">
+                   <span>Tạm tính</span>
+                   <span>{selectedOrder.subTotal.toLocaleString('vi-VN')} ₫</span>
+                 </div>
+                 {selectedOrder.discountAmount > 0 && (
+                   <div className="flex justify-between text-sm mb-2 text-green-600">
+                     <span>Giảm giá ({selectedOrder.discountCode})</span>
+                     <span>-{selectedOrder.discountAmount.toLocaleString('vi-VN')} ₫</span>
+                   </div>
+                 )}
+                 {selectedOrder.shippingFee > 0 && (
+                   <div className="flex justify-between text-sm mb-3 text-stone-600">
+                     <span>Phí vận chuyển</span>
+                     <span>+{selectedOrder.shippingFee.toLocaleString('vi-VN')} ₫</span>
+                   </div>
+                 )}
+                 <div className="flex justify-between pt-3 border-t border-brand-200/50">
+                   <span className="font-bold text-brand-900">Tổng cộng</span>
+                   <span className="font-bold text-lg text-brand-700">{selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
+                 </div>
+               </div>
+             </div>
+             
+             <button onClick={() => setSelectedOrder(null)} className="w-full mt-6 py-3.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 shadow-md">Đóng</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
