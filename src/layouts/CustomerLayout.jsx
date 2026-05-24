@@ -541,7 +541,7 @@ export default function CustomerLayout() {
             {cart.length > 0 && (
               <div className="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-brand-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-10">
                 <button onClick={handleCheckout} className="w-full py-4 bg-brand-500 text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-brand-600 shadow-md">
-                  Thanh toán - {finalAmount.toLocaleString('vi-VN')} ₫
+                  Đặt đơn - {finalAmount.toLocaleString('vi-VN')} ₫
                 </button>
               </div>
             )}
