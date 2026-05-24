@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ShoppingBag, CakeSlice, MapPin, Phone, ArrowRight, Home as HomeIcon, Coffee, Percent, LayoutGrid, QrCode, X, ChevronRight, Ticket, Navigation } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { ShoppingBag, CakeSlice, MapPin, Phone, ArrowRight, Home as HomeIcon, Coffee, Percent, LayoutGrid, QrCode, X, ChevronRight, Ticket, Navigation, Search } from 'lucide-react';
 import axios from 'axios';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -13,25 +13,63 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-function LocationMarker({ position, setPosition }) {
+function LocationMarker({ position, setPosition, setFormData }) {
+  const markerRef = useRef(null);
+
+  const updatePosition = async (latlng) => {
+    setPosition(latlng);
+    try {
+      const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latlng.lat}&lon=${latlng.lng}`);
+      if (res.data && res.data.display_name && setFormData) {
+        setFormData(prev => ({...prev, address: res.data.display_name}));
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const map = useMapEvents({
     click(e) {
-      setPosition(e.latlng);
+      updatePosition(e.latlng);
     },
     locationfound(e) {
-      setPosition(e.latlng);
+      updatePosition(e.latlng);
       map.flyTo(e.latlng, map.getZoom());
     },
   });
 
-  // Request GPS automatically on load if position is not set
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          updatePosition(marker.getLatLng());
+        }
+      },
+    }),
+    [setPosition, setFormData],
+  );
+
   useEffect(() => {
     if (!position) map.locate();
   }, [map, position]);
 
   return position === null ? null : (
-    <Marker position={position}></Marker>
+    <Marker 
+      draggable={true}
+      eventHandlers={eventHandlers}
+      position={position}
+      ref={markerRef}
+    ></Marker>
   );
+}
+
+function MapUpdater({ center }) {
+  const map = useMapEvents({});
+  useEffect(() => {
+    if (center) map.flyTo(center, 15);
+  }, [center, map]);
+  return null;
 }
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
@@ -51,6 +89,17 @@ export default function CustomerLayout() {
   const [shippingConfig, setShippingConfig] = useState(null);
   const [customerLocation, setCustomerLocation] = useState(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  const handleMapSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery) return;
+    try {
+      const res = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=vn`);
+      setSearchResults(res.data);
+    } catch(err) {}
+  };
 
   const [customer, setCustomer] = useState(null);
 
@@ -226,7 +275,14 @@ export default function CustomerLayout() {
           
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => setIsCheckout(true)}
+              onClick={() => {
+                if (!customer) {
+                  alert('Vui lòng đăng nhập để đặt hàng');
+                  navigate('/profile');
+                  return;
+                }
+                setIsCheckout(true);
+              }}
               className="flex items-center gap-2 text-brand-800 hover:text-brand-600 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-brand-100"
             >
               <span className="text-sm font-bold tracking-wide uppercase">Giỏ hàng</span>
@@ -246,7 +302,14 @@ export default function CustomerLayout() {
       {/* Floating Cart Button for Mobile (when not in checkout) */}
       {!isCheckout && cart.length > 0 && (
         <button 
-          onClick={() => setIsCheckout(true)}
+          onClick={() => {
+            if (!customer) {
+              alert('Vui lòng đăng nhập để đặt hàng');
+              navigate('/profile');
+              return;
+            }
+            setIsCheckout(true);
+          }}
           className="md:hidden fixed bottom-28 right-4 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center z-40 hover:bg-brand-700 transition-colors"
         >
           <div className="relative">
@@ -444,15 +507,52 @@ export default function CustomerLayout() {
                <h2 className="text-lg font-bold text-stone-900">Ghim Vị Trí Nhận Hàng</h2>
                <button onClick={() => setIsMapOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-800"><X size={18}/></button>
              </div>
-             <div className="p-4 bg-stone-50 text-sm text-stone-600 font-medium">
-               Bản đồ sẽ tự định vị bạn (GPS). Bạn có thể chạm để chọn chính xác điểm giao.
+             
+             <div className="p-3 bg-stone-50 border-b border-stone-100">
+               <form onSubmit={handleMapSearch} className="flex gap-2">
+                 <input 
+                   type="text" 
+                   placeholder="Tìm kiếm địa chỉ..." 
+                   className="flex-1 px-3 py-2 text-sm border border-stone-200 rounded-lg outline-none focus:border-brand-500"
+                   value={searchQuery}
+                   onChange={e => setSearchQuery(e.target.value)}
+                 />
+                 <button type="submit" className="px-3 py-2 bg-brand-500 text-white rounded-lg flex items-center justify-center hover:bg-brand-600">
+                   <Search size={16} />
+                 </button>
+               </form>
+               {searchResults.length > 0 && (
+                 <div className="absolute z-[1000] left-0 right-0 top-[110px] mx-4 max-h-48 overflow-y-auto bg-white border border-stone-200 shadow-xl rounded-lg">
+                   {searchResults.map((res, i) => (
+                     <div 
+                       key={i} 
+                       className="p-3 text-sm border-b border-stone-100 cursor-pointer hover:bg-brand-50"
+                       onClick={() => {
+                         const latlng = { lat: parseFloat(res.lat), lng: parseFloat(res.lon) };
+                         setCustomerLocation(latlng);
+                         setFormData(prev => ({...prev, address: res.display_name}));
+                         setSearchResults([]);
+                         setSearchQuery('');
+                       }}
+                     >
+                       {res.display_name}
+                     </div>
+                   ))}
+                 </div>
+               )}
              </div>
-             <div className="h-[60vh] w-full relative z-0">
+
+             <div className="p-2 bg-stone-50 text-[11px] text-stone-500 font-medium text-center">
+               Bạn có thể tìm kiếm, chạm vào bản đồ hoặc kéo thả ghim để chọn chính xác điểm giao.
+             </div>
+             <div className="h-[50vh] w-full relative z-0">
                 <MapContainer center={customerLocation || (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [21.0285, 105.8542])} zoom={15} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <MapUpdater center={customerLocation} />
                   <LocationMarker 
                     position={customerLocation} 
                     setPosition={setCustomerLocation} 
+                    setFormData={setFormData}
                   />
                 </MapContainer>
              </div>

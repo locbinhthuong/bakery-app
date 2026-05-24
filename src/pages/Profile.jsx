@@ -1,16 +1,18 @@
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import axios from 'axios';
-import { Clock, CheckCircle2, Store, Star, UserCircle, MapPin, Info, LogOut, ChevronRight } from 'lucide-react';
+import { Clock, CheckCircle2, Store, Star, UserCircle, MapPin, Info, LogOut, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
 export default function Profile() {
   const { customer, updateCustomer } = useOutletContext();
+  const navigate = useNavigate();
   
   // Auth states (if not logged in)
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [authForm, setAuthForm] = useState({ phone: '', password: '', name: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +25,14 @@ export default function Profile() {
         localStorage.setItem('bakery_token', res.data.data.token);
         localStorage.setItem('bakery_customer', JSON.stringify(res.data.data.customer));
         updateCustomer(res.data.data.customer);
+        
+        // Request GPS silently without saving to DB per user request
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => console.log("GPS Location acquired:", pos.coords.latitude, pos.coords.longitude),
+            (err) => console.log("GPS Permission denied/failed:", err)
+          );
+        }
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.');
@@ -63,12 +73,19 @@ export default function Profile() {
                 value={authForm.phone} onChange={e => setAuthForm({...authForm, phone: e.target.value})}
               />
             </div>
-            <div>
+            <div className="relative">
               <input 
-                type="password" required placeholder="Mật khẩu"
-                className="w-full px-4 py-3 bg-brand-50 border border-brand-200 rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all font-medium"
+                type={showPassword ? "text" : "password"} required placeholder="Mật khẩu"
+                className="w-full px-4 py-3 bg-brand-50 border border-brand-200 rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all font-medium pr-12"
                 value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})}
               />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-500 hover:text-brand-700 p-1"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
             <button type="submit" className="w-full py-3.5 bg-brand-600 text-white rounded-xl font-bold uppercase tracking-wider hover:bg-brand-700 transition-colors shadow-md mt-2">
               {isLoginMode ? 'Đăng nhập' : 'Đăng ký'}
