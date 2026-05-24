@@ -116,7 +116,10 @@ export default function Menu() {
                       {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 'Đang giao / Hoàn thành'}
                     </span>
                   </div>
-                  <div className="font-bold">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
+                  <div className="text-right">
+                    <div className="font-bold">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
+                    {order.shippingFee > 0 && <div className="text-[10px] text-white/70">Gồm {order.shippingFee.toLocaleString('vi-VN')}₫ ship</div>}
+                  </div>
                 </div>
               ))}
             </div>

@@ -489,7 +489,10 @@ export default function Admin() {
                     </button>
                   </div>
                   <div className="flex flex-col items-end gap-2 w-full md:w-auto h-full justify-between border-t md:border-0 md:border-l border-stone-100 pt-3 md:pt-0 md:pl-6">
-                    <div className="text-xl font-bold text-stone-900">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-stone-900">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
+                      {order.shippingFee > 0 && <div className="text-xs font-medium text-stone-500 mt-0.5">Tiền bánh: {order.subTotal.toLocaleString('vi-VN')}₫ | Ship: {order.shippingFee.toLocaleString('vi-VN')}₫</div>}
+                    </div>
                     <div className="text-xs text-stone-400">{new Date(order.createdAt).toLocaleString('vi-VN')}</div>
                     {order.status === 'PENDING' && (
                       <button 

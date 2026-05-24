@@ -72,6 +72,7 @@ export default function Orders() {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-brand-700 text-lg">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
+                  {order.shippingFee > 0 && <div className="text-xs text-stone-500 font-medium">Tiền hàng: {order.subTotal.toLocaleString('vi-VN')}₫ | Phí ship: {order.shippingFee.toLocaleString('vi-VN')}₫</div>}
                 </div>
               </div>
               

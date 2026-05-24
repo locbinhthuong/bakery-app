@@ -187,9 +187,10 @@ export default function CustomerLayout() {
         note: formData.note,
         items: cart.map(i => ({ productId: i._id, name: i.name, price: i.price, quantity: i.quantity })),
         subTotal: totalAmount,
-        discountCode: appliedPromo ? appliedPromo.code : '',
+        discountCode: appliedPromo ? appliedPromo.code : null,
         discountAmount: appliedPromo ? appliedPromo.discountAmount : 0,
-        totalAmount: finalAmount
+        shippingFee: previewShippingFee,
+        distanceKm: distanceKm
       });
       alert('Tuyệt vời! Đơn hàng của bạn đã được ghi nhận.');
       setCart([]);
