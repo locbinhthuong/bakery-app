@@ -402,9 +402,11 @@ export default function CustomerLayout() {
                     <button type="button" onClick={() => {
                       setIsMapOpen(true);
                       if (navigator.geolocation && !customerLocation) {
-                        navigator.geolocation.getCurrentPosition((pos) => {
-                          setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                        });
+                        navigator.geolocation.getCurrentPosition(
+                          (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                          (err) => console.log('Lỗi định vị:', err),
+                          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        );
                       }
                     }} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
                       <Navigation size={18} className="text-brand-600"/> 
