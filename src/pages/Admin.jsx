@@ -41,8 +41,9 @@ export default function Admin() {
   
   const [selectedOrder, setSelectedOrder] = useState(null);
   
-  // States for Editing Product
+  // States for Editing Product/Customer
   const [editingProduct, setEditingProduct] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState(null);
 
   // States for Sub-tabs in Menu
   const [menuSubTab, setMenuSubTab] = useState('products'); // 'products' or 'categories'
@@ -235,6 +236,37 @@ export default function Admin() {
       await axios.delete(`${BACKEND_URL}/admin/promos/${id}`);
       fetchData();
     } catch (err) { alert('Lỗi xoá'); }
+  };
+
+  // CUSTOMERS Actions
+  const handleUpdateCustomer = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    try {
+      await axios.put(`${BACKEND_URL}/admin/customers/${editingCustomer._id}`, {
+        name: fd.get('name'),
+        phone: fd.get('phone'),
+        password: fd.get('password') || undefined
+      });
+      setEditingCustomer(null);
+      fetchData();
+      alert('Đã cập nhật khách hàng');
+    } catch (err) { alert('Lỗi cập nhật'); }
+  };
+  
+  const handleDeleteCustomer = async (id) => {
+    if (!window.confirm('Chắc chắn xoá khách hàng này? Tất cả dữ liệu đăng nhập sẽ bị xoá!')) return;
+    try {
+      await axios.delete(`${BACKEND_URL}/admin/customers/${id}`);
+      fetchData();
+    } catch (err) { alert('Lỗi xoá khách hàng'); }
+  };
+
+  const handleToggleBlockCustomer = async (id) => {
+    try {
+      await axios.put(`${BACKEND_URL}/admin/customers/${id}/toggle-block`);
+      fetchData();
+    } catch (err) { alert('Lỗi đổi trạng thái'); }
   };
 
   // ORDERS Actions
@@ -609,15 +641,24 @@ export default function Admin() {
                       <th className="px-6 py-4">Số điện thoại</th>
                       <th className="px-6 py-4 text-center">Đơn đã mua</th>
                       <th className="px-6 py-4 text-right">Tổng chi tiêu</th>
+                      <th className="px-6 py-4 text-center">Hành động</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {customers.map(c => (
-                      <tr key={c._id} className="hover:bg-stone-50">
-                        <td className="px-6 py-4 font-bold text-stone-800">{c.name}</td>
+                      <tr key={c._id} className={`hover:bg-stone-50 ${c.isBlocked ? 'opacity-70 bg-stone-100' : ''}`}>
+                        <td className="px-6 py-4 font-bold text-stone-800">
+                          {c.name}
+                          {c.isBlocked && <span className="ml-2 px-2 py-0.5 text-[10px] bg-red-100 text-red-700 rounded-full font-bold">ĐÃ KHÓA</span>}
+                        </td>
                         <td className="px-6 py-4 text-stone-600">{c.phone}</td>
                         <td className="px-6 py-4 text-center"><span className="px-3 py-1 bg-brand-100 text-brand-800 rounded-full font-bold text-xs">{c.totalOrders}</span></td>
                         <td className="px-6 py-4 text-right font-bold text-brand-700">{c.totalSpent.toLocaleString('vi-VN')} ₫</td>
+                        <td className="px-6 py-4 flex items-center justify-center gap-2">
+                          <button onClick={() => setEditingCustomer(c)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Sửa"><Edit2 size={18}/></button>
+                          <button onClick={() => handleToggleBlockCustomer(c._id)} className={`p-2 rounded-lg ${c.isBlocked ? 'text-green-600 hover:bg-green-50' : 'text-orange-600 hover:bg-orange-50'}`} title={c.isBlocked ? "Mở khóa" : "Khóa"}>{c.isBlocked ? <CheckCircle size={18}/> : <LogOut size={18}/>}</button>
+                          <button onClick={() => handleDeleteCustomer(c._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Xóa"><Trash2 size={18}/></button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -635,7 +676,7 @@ export default function Admin() {
                   <p className="text-sm text-stone-500 mb-4">Ghim vị trí chính xác của tiệm bánh để hệ thống AloShipp lấy hàng.</p>
                   <div className="h-64 w-full rounded-xl overflow-hidden border border-stone-200 z-0 relative">
                     <MapContainer center={[settings.storeLocation.lat, settings.storeLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
-                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                      <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                       <LocationMarker 
                         position={settings.storeLocation} 
                         setPosition={(latlng) => setSettings({...settings, storeLocation: latlng})} 
@@ -747,6 +788,34 @@ export default function Admin() {
                   <button onClick={() => { handleCompleteOrder(selectedOrder._id); setSelectedOrder(null); }} className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700">Khách đã lấy (Hoàn thành)</button>
                 )}
              </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Modal */}
+      {editingCustomer && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onClick={() => setEditingCustomer(null)}></div>
+          <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold mb-4 font-serif">Sửa Khách Hàng</h2>
+            <form onSubmit={handleUpdateCustomer} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-1">Tên khách hàng</label>
+                <input name="name" defaultValue={editingCustomer.name} required className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl outline-none focus:border-brand-500 font-medium" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-1">Số điện thoại</label>
+                <input name="phone" defaultValue={editingCustomer.phone} required className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl outline-none focus:border-brand-500 font-medium" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-1">Đổi mật khẩu (Bỏ trống nếu không đổi)</label>
+                <input name="password" type="password" className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl outline-none focus:border-brand-500 font-medium" placeholder="Nhập mật khẩu mới..." />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={() => setEditingCustomer(null)} className="flex-1 py-3 bg-stone-100 text-stone-600 font-bold rounded-xl hover:bg-stone-200">Hủy</button>
+                <button type="submit" className="flex-1 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Lưu thay đổi</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

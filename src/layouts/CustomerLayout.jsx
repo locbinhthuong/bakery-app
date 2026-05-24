@@ -598,7 +598,7 @@ export default function CustomerLayout() {
              </div>
              <div className="h-[50vh] w-full relative z-0">
                 <MapContainer center={customerLocation || (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [21.0285, 105.8542])} zoom={15} style={{ height: '100%', width: '100%' }}>
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                   <MapUpdater center={customerLocation} />
                   <LocationMarker 
                     position={customerLocation} 
