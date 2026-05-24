@@ -508,11 +508,78 @@ export default function Admin() {
             </div>
           )}
 
-          {/* ===================== MENU TAB (Products + Categories) ===================== */}
+          {/* ===================== MENU TAB ===================== */}
           {activeTab === 'menu' && (
-            <div className="animate-in fade-in duration-500 max-w-5xl mx-auto">
-              {/* Sub-tabs */}
-              <div className="flex gap-4 mb-6 border-b border-stone-200 pb-2">
+            <div className="space-y-8 animate-in fade-in duration-500 max-w-6xl mx-auto">
+              
+              {/* VOUCHER SECTION IN MENU TAB */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-brand-200/60 mb-8">
+                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Ticket size={20} className="text-brand-600" /> Quản lý Mã Giảm Giá</h3>
+                <form onSubmit={handleAddPromo} className="space-y-4 mb-6 border-b border-stone-100 pb-6">
+                  <input type="hidden" name="postType" value="VOUCHER" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input name="title" type="text" placeholder="Tên Voucher (VD: Giảm 20K cho đơn từ 100K)" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none font-bold" />
+                    <input name="code" type="text" placeholder="MÃ CODE (Viết liền không dấu)" required className="w-full px-4 py-2 bg-white border border-brand-200 rounded-lg outline-none uppercase font-bold text-brand-700" />
+                  </div>
+                  <textarea name="content" rows="2" placeholder="Nội dung mô tả (tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
+                      <option value="FIXED">Giảm số tiền cố định</option>
+                      <option value="PERCENT">Giảm theo phần trăm</option>
+                    </select>
+                    <input name="discountValue" type="number" placeholder="Mức giảm (VD: 20000 hoặc 15)" required className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
+                  </div>
+
+                  <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg space-y-4">
+                    <h4 className="font-bold text-stone-700 text-sm">Cài đặt nâng cao</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian bắt đầu</label>
+                        <input name="startDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian kết thúc</label>
+                        <input name="endDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Đơn tối thiểu (VNĐ)</label>
+                        <input name="minOrderValue" type="number" placeholder="0" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Tổng lượt dùng</label>
+                        <input name="totalUsageLimit" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Lượt dùng/Khách</label>
+                        <input name="maxUsagePerUser" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button type="submit" className="py-2.5 px-8 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Tạo Mã Giảm Giá</button>
+                  </div>
+                </form>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {promos.filter(p => p.postType === 'VOUCHER').map(promo => (
+                    <div key={promo._id} className="p-4 rounded-xl border border-brand-200 bg-brand-50 flex gap-4 items-center">
+                      <div className="flex-1">
+                        <div className="font-bold text-brand-800">{promo.code} - {promo.title}</div>
+                        <div className="text-sm text-stone-600">Giảm: {promo.discountValue}{promo.discountType==='PERCENT'?'%':'đ'} {promo.minOrderValue>0 ? `(Đơn từ ${promo.minOrderValue.toLocaleString('vi-VN')})`:''}</div>
+                      </div>
+                      <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-red-500 hover:bg-red-100 rounded-lg"><Trash2 size={18} /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* TABS FOR MENU OR CATEGORIES */}
+              <div className="flex gap-4 border-b border-stone-200 mb-6 px-2 overflow-x-auto">
                 <button 
                   onClick={() => setMenuSubTab('products')} 
                   className={`font-bold pb-2 border-b-2 transition-colors ${menuSubTab === 'products' ? 'text-brand-600 border-brand-600' : 'text-stone-500 border-transparent hover:text-stone-800'}`}
@@ -613,72 +680,6 @@ export default function Admin() {
           {activeTab === 'orders' && (
             <div className="space-y-8 animate-in fade-in duration-500 max-w-6xl mx-auto">
               
-              {/* VOUCHER SECTION IN ORDERS TAB */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-brand-200/60 mb-8">
-                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Ticket size={20} className="text-brand-600" /> Quản lý Mã Giảm Giá</h3>
-                <form onSubmit={handleAddPromo} className="space-y-4 mb-6 border-b border-stone-100 pb-6">
-                  <input type="hidden" name="postType" value="VOUCHER" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input name="title" type="text" placeholder="Tên Voucher (VD: Giảm 20K cho đơn từ 100K)" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none font-bold" />
-                    <input name="code" type="text" placeholder="MÃ CODE (Viết liền không dấu)" required className="w-full px-4 py-2 bg-white border border-brand-200 rounded-lg outline-none uppercase font-bold text-brand-700" />
-                  </div>
-                  <textarea name="content" rows="2" placeholder="Nội dung mô tả (tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
-                      <option value="FIXED">Giảm số tiền cố định</option>
-                      <option value="PERCENT">Giảm theo phần trăm</option>
-                    </select>
-                    <input name="discountValue" type="number" placeholder="Mức giảm (VD: 20000 hoặc 15)" required className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
-                  </div>
-
-                  <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg space-y-4">
-                    <h4 className="font-bold text-stone-700 text-sm">Cài đặt nâng cao</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian bắt đầu</label>
-                        <input name="startDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian kết thúc</label>
-                        <input name="endDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Đơn tối thiểu (VNĐ)</label>
-                        <input name="minOrderValue" type="number" placeholder="0" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Tổng lượt dùng</label>
-                        <input name="totalUsageLimit" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Lượt dùng/Khách</label>
-                        <input name="maxUsagePerUser" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <button type="submit" className="py-2.5 px-8 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Tạo Mã Giảm Giá</button>
-                  </div>
-                </form>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {promos.filter(p => p.postType === 'VOUCHER').map(promo => (
-                    <div key={promo._id} className="p-4 rounded-xl border border-brand-200 bg-brand-50 flex gap-4 items-center">
-                      <div className="flex-1">
-                        <div className="font-bold text-brand-800">{promo.code} - {promo.title}</div>
-                        <div className="text-sm text-stone-600">Giảm: {promo.discountValue}{promo.discountType==='PERCENT'?'%':'đ'} {promo.minOrderValue>0 ? `(Đơn từ ${promo.minOrderValue.toLocaleString('vi-VN')})`:''}</div>
-                      </div>
-                      <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-red-500 hover:bg-red-100 rounded-lg"><Trash2 size={18} /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* ORDERS LIST SECTION */}
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2 mb-4"><ShoppingCart size={20} className="text-brand-600" /> Danh sách Đơn Hàng</h3>
