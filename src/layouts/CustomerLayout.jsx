@@ -113,23 +113,24 @@ export default function CustomerLayout() {
   }, []);
 
   useEffect(() => {
-    axios.get(`${BACKEND_URL}/products`)
+    const t = Date.now();
+    axios.get(`${BACKEND_URL}/products?t=${t}`)
       .then(res => setProducts(res.data.data))
       .catch(err => console.error(err));
       
-    axios.get(`${BACKEND_URL}/promos`)
+    axios.get(`${BACKEND_URL}/promos?t=${t}`)
       .then(res => setPromos(res.data.data))
       .catch(err => console.error(err));
 
-    axios.get(`${BACKEND_URL}/categories`)
+    axios.get(`${BACKEND_URL}/categories?t=${t}`)
       .then(res => setCategories(res.data.data))
       .catch(err => console.error(err));
       
-    axios.get(`${BACKEND_URL}/settings`)
+    axios.get(`${BACKEND_URL}/settings?t=${t}`)
       .then(res => setSettings(res.data.data))
       .catch(err => console.error(err));
       
-    axios.get(`https://api.aloshipp.com/api/config/PRICING_CONFIG`)
+    axios.get(`https://api.aloshipp.com/api/config/PRICING_CONFIG?t=${t}`)
       .then(res => {
         if (res.data && res.data.data && res.data.data.value) {
           setShippingConfig(res.data.data.value);
