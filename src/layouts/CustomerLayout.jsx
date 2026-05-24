@@ -290,10 +290,8 @@ export default function CustomerLayout() {
         <div className="max-w-7xl mx-auto px-12 flex justify-between items-center w-full">
           <div className="flex items-center gap-12">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-brand-900 rounded-full flex items-center justify-center text-brand-50 transition-transform duration-500 group-hover:rotate-12 shadow-sm">
-                <CakeSlice size={20} />
-              </div>
-              <span className="text-2xl font-serif font-bold tracking-tight">Le Petit</span>
+              <img src="/logo.png" alt="Sweet Bakery" className="w-10 h-10 object-contain rounded-full shadow-sm transition-transform duration-500 group-hover:rotate-12 bg-white" />
+              <span className="text-2xl font-serif font-bold tracking-tight text-brand-800">Sweet Bakery</span>
             </Link>
             <div className="flex items-center gap-8 text-sm font-bold tracking-wide uppercase">
               <Link to="/" className={`transition-colors ${location.pathname === '/' ? 'text-brand-600' : 'text-brand-800 hover:text-brand-600'}`}>Trang chủ</Link>

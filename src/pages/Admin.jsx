@@ -336,8 +336,8 @@ export default function Admin() {
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#23140c] text-stone-300 flex flex-col transform transition-transform duration-300 md:relative ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3 text-white">
-            <div className="w-10 h-10 bg-brand-500 rounded-lg flex items-center justify-center">
-              <CakeSlice size={20} className="text-white" />
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Sweet Bakery" className="w-full h-full object-contain" />
             </div>
             <span className="text-xl font-serif font-bold tracking-wide">Admin</span>
           </div>
@@ -634,7 +634,8 @@ export default function Admin() {
           {activeTab === 'customers' && (
             <div className="animate-in fade-in duration-500 max-w-5xl mx-auto">
               <div className="bg-white rounded-xl shadow-sm border border-stone-200/60 overflow-hidden">
-                <table className="w-full text-left">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left whitespace-nowrap">
                   <thead className="bg-stone-50 text-stone-600 font-medium border-b border-stone-200/60">
                     <tr>
                       <th className="px-6 py-4">Tên khách hàng</th>
