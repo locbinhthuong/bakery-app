@@ -2,10 +2,13 @@ import { useOutletContext, Link } from 'react-router-dom';
 import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket } from 'lucide-react';
 
 export default function Home() {
-  const { products, addToCart, customer } = useOutletContext();
+  const { products, addToCart, customer, promos } = useOutletContext();
 
   // Get products marked as best sellers
   const bestSellers = products.filter(p => p.isBestSeller);
+  
+  // Get news and ads
+  const newsPromos = (promos || []).filter(p => p.postType !== 'VOUCHER');
 
   return (
     <div className="pb-20">
