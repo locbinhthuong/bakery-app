@@ -199,11 +199,23 @@ export default function CustomerLayout() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
     distanceKm = R * c; 
 
-    if (distanceKm <= shippingConfig.baseDistance) {
-      previewShippingFee = shippingConfig.basePrice;
-    } else {
-      const extraKm = Math.ceil(distanceKm - shippingConfig.baseDistance);
-      previewShippingFee = shippingConfig.basePrice + (extraKm * shippingConfig.pricePerKm);
+    if (shippingConfig.tiers && Array.isArray(shippingConfig.tiers)) {
+      const sortedTiers = [...shippingConfig.tiers].sort((a, b) => a.maxKm - b.maxKm);
+      for (const tier of sortedTiers) {
+        if (distanceKm <= tier.maxKm) {
+          if (tier.type === 'fixed') {
+            previewShippingFee = tier.price;
+          } else if (tier.type === 'per_km') {
+            previewShippingFee = Math.ceil(distanceKm) * tier.price;
+          }
+          break;
+        }
+      }
+      if (previewShippingFee === 0 && sortedTiers.length > 0) {
+        const lastTier = sortedTiers[sortedTiers.length - 1];
+        if (lastTier.type === 'fixed') previewShippingFee = lastTier.price;
+        else previewShippingFee = Math.ceil(distanceKm) * lastTier.price;
+      }
     }
   }
 
