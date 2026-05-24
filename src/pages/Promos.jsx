@@ -8,12 +8,13 @@ export default function Promos() {
   const [activeSubTab, setActiveSubTab] = useState('uu_dai');
   const [code, setCode] = useState('');
 
-  // Lọc promos thành active và inactive
   const now = new Date();
   const activePromos = [];
   const inactivePromos = [];
 
-  promos.forEach(promo => {
+  const voucherPromos = promos.filter(p => p.postType === 'VOUCHER' || p.discountType !== 'NONE');
+
+  voucherPromos.forEach(promo => {
     let isInactive = false;
     if (promo.endDate && new Date(promo.endDate) < now) isInactive = true;
     if (promo.startDate && new Date(promo.startDate) > now) isInactive = true;

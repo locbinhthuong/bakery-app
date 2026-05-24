@@ -416,7 +416,7 @@ export default function CustomerLayout() {
                   {cart.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-start gap-4 bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 relative">
                       <div className="w-20 h-20 bg-brand-50 rounded-xl overflow-hidden shrink-0">
-                        {item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-brand-300"><CakeSlice size={24}/></div>}
+                        {(item.images && item.images.length > 0) ? <img src={item.images[0]} className="w-full h-full object-cover" /> : item.image ? <img src={item.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-brand-300"><CakeSlice size={24}/></div>}
                       </div>
                       <div className="flex-1 py-1 pr-6">
                         <div className="font-bold text-stone-900 leading-tight mb-2">{item.name}</div>

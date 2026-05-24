@@ -209,8 +209,14 @@ export default function Menu() {
                 <div key={product._id} className="bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 flex gap-4 relative overflow-hidden">
                   <div className="absolute top-2 left-0 bg-brand-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-r">MỚI</div>
                   
-                  <div className="w-24 h-24 bg-brand-50 rounded-xl overflow-hidden shrink-0">
-                    {product.image ? (
+                  <div className="w-24 h-24 bg-brand-50 rounded-xl overflow-hidden shrink-0 relative group">
+                    {(product.images && product.images.length > 0) ? (
+                      <div className="flex overflow-x-auto snap-x snap-mandatory h-full w-full scroll-smooth" style={{ scrollbarWidth: 'none' }}>
+                        {product.images.map((img, i) => (
+                          <img key={i} src={img} alt={`${product.name} ${i}`} className="w-full h-full object-cover shrink-0 snap-center" />
+                        ))}
+                      </div>
+                    ) : product.image ? (
                       <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-brand-300">

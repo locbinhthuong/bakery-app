@@ -146,16 +146,29 @@ export default function Admin() {
   const handleAddProduct = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    const imageFile = fd.get('imageFile');
-    let imageUrl = '';
-    if (imageFile && imageFile.name) imageUrl = await uploadImageFile(imageFile);
+    const imageFiles = fd.getAll('imageFiles');
+    const uploadedImages = [];
+
+    const singleImageFile = fd.get('imageFile');
+    if (singleImageFile && singleImageFile.name) {
+      const singleUrl = await uploadImageFile(singleImageFile);
+      if (singleUrl) uploadedImages.push(singleUrl);
+    }
+
+    for (const file of imageFiles) {
+      if (file && file.name) {
+        const url = await uploadImageFile(file);
+        if (url) uploadedImages.push(url);
+      }
+    }
 
     try {
       await axios.post(`${BACKEND_URL}/admin/products`, {
         name: fd.get('name'),
         price: Number(fd.get('price')),
         category: fd.get('category'),
-        image: imageUrl,
+        image: uploadedImages[0] || '',
+        images: uploadedImages,
         description: fd.get('description'),
         isActive: true
       });
@@ -167,12 +180,24 @@ export default function Admin() {
   const handleUpdateProduct = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    const imageFile = fd.get('imageFile');
-    let imageUrl = editingProduct.image;
+    const imageFiles = fd.getAll('imageFiles');
     
-    if (imageFile && imageFile.name) {
-      const newUrl = await uploadImageFile(imageFile);
-      if (newUrl) imageUrl = newUrl;
+    let uploadedImages = [...(editingProduct.images || [])];
+    if (uploadedImages.length === 0 && editingProduct.image) {
+      uploadedImages.push(editingProduct.image);
+    }
+
+    const singleImageFile = fd.get('imageFile');
+    if (singleImageFile && singleImageFile.name) {
+      const singleUrl = await uploadImageFile(singleImageFile);
+      if (singleUrl) uploadedImages.push(singleUrl);
+    }
+
+    for (const file of imageFiles) {
+      if (file && file.name) {
+        const url = await uploadImageFile(file);
+        if (url) uploadedImages.push(url);
+      }
     }
 
     try {
@@ -180,7 +205,8 @@ export default function Admin() {
         name: fd.get('name'),
         price: Number(fd.get('price')),
         category: fd.get('category'),
-        image: imageUrl,
+        image: uploadedImages[0] || '',
+        images: uploadedImages,
         description: fd.get('description')
       });
       setEditingProduct(null);
@@ -217,6 +243,7 @@ export default function Admin() {
         content: fd.get('content'),
         image: imageUrl,
         code: (fd.get('code') || '').toUpperCase(),
+        postType: fd.get('postType') || 'NEWS',
         discountType: fd.get('discountType') || 'NONE',
         discountValue: Number(fd.get('discountValue')) || 0,
         minOrderValue: Number(fd.get('minOrderValue')) || 0,
@@ -228,7 +255,7 @@ export default function Admin() {
       });
       e.target.reset();
       fetchData();
-    } catch (err) { alert('Lỗi thêm khuyến mãi'); }
+    } catch (err) { alert('Lỗi thêm khuyến mãi/bài viết'); }
   };
   const handleDeletePromo = async (id) => {
     if (!window.confirm('Chắc chắn xoá bài đăng này?')) return;
@@ -394,7 +421,7 @@ export default function Admin() {
                     <div key={p._id} className={`p-3 rounded-xl border flex items-center justify-between ${p.isBestSeller ? 'border-brand-500 bg-brand-50' : 'border-stone-200'}`}>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white rounded-md flex justify-center items-center overflow-hidden border border-stone-100">
-                          {p.image ? <img src={p.image} className="w-full h-full object-cover"/> : <CakeSlice size={16}/>}
+                          {(p.images && p.images.length > 0) ? <img src={p.images[0]} className="w-full h-full object-cover"/> : p.image ? <img src={p.image} className="w-full h-full object-cover"/> : <CakeSlice size={16}/>}
                         </div>
                         <div className="font-medium text-sm line-clamp-1">{p.name}</div>
                       </div>
@@ -413,8 +440,16 @@ export default function Admin() {
               <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
                 <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Tag size={20} className="text-brand-600" /> Đăng quảng cáo / Sự kiện</h3>
                 <form onSubmit={handleAddPromo} className="space-y-4 mb-8 border-b border-stone-100 pb-8">
-                  <input name="title" type="text" placeholder="Tiêu đề" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
-                  <textarea name="content" rows="2" placeholder="Nội dung" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <select name="postType" className="w-full px-4 py-2 bg-stone-50 border border-brand-200 rounded-lg outline-none font-bold text-brand-700">
+                      <option value="ADS">Quảng cáo (Ads)</option>
+                      <option value="NEWS">Tin tức (News)</option>
+                      <option value="EVENT">Sự kiện (Event)</option>
+                      <option value="VOUCHER">Mã Giảm Giá (Voucher)</option>
+                    </select>
+                    <input name="title" type="text" placeholder="Tiêu đề bài viết / Tên Voucher" required className="col-span-2 w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
+                  </div>
+                  <textarea name="content" rows="2" placeholder="Nội dung chi tiết" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input name="code" type="text" placeholder="Mã (tuỳ chọn)" className="px-4 py-2 bg-white border rounded-lg outline-none uppercase" />
@@ -507,7 +542,7 @@ export default function Admin() {
                         {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                       </select>
                       <input name="description" type="text" placeholder="Mô tả ngắn gọn" className="md:col-span-2 px-4 py-2 bg-stone-50 border rounded-lg" />
-                      <input name="imageFile" type="file" accept="image/*" className="col-span-1 text-sm pt-2" />
+                      <input name="imageFiles" type="file" multiple accept="image/*" className="col-span-1 text-sm pt-2" />
                       <button type="submit" className="md:col-span-3 py-2.5 bg-stone-900 text-white font-bold rounded-lg hover:bg-brand-900">Thêm Bánh</button>
                     </form>
                   </div>
@@ -528,7 +563,7 @@ export default function Admin() {
                           <tr key={p._id} className="hover:bg-stone-50">
                             <td className="px-4 py-3 flex items-center gap-3">
                               <div className="w-10 h-10 rounded border overflow-hidden shrink-0">
-                                {p.image ? <img src={p.image} className="w-full h-full object-cover"/> : <div className="bg-stone-100 w-full h-full flex items-center justify-center text-stone-300"><CakeSlice size={16}/></div>}
+                                {(p.images && p.images.length > 0) ? <img src={p.images[0]} className="w-full h-full object-cover"/> : p.image ? <img src={p.image} className="w-full h-full object-cover"/> : <div className="bg-stone-100 w-full h-full flex items-center justify-center text-stone-300"><CakeSlice size={16}/></div>}
                               </div>
                               <div className="font-bold text-stone-800">{p.name}</div>
                             </td>
@@ -725,8 +760,16 @@ export default function Admin() {
                 <input name="description" type="text" defaultValue={editingProduct.description} className="w-full px-4 py-2 mt-1 bg-stone-50 border rounded-lg" />
               </div>
               <div>
-                <label className="text-xs font-bold text-stone-500 uppercase">Ảnh mới (bỏ trống nếu giữ cũ)</label>
-                <input name="imageFile" type="file" accept="image/*" className="w-full text-sm mt-1" />
+                <label className="text-xs font-bold text-stone-500 uppercase">Ảnh hiện tại</label>
+                <div className="flex gap-2 overflow-x-auto py-2 mb-2">
+                  {(editingProduct.images && editingProduct.images.length > 0) ? 
+                    editingProduct.images.map((img, i) => <img key={i} src={img} className="w-16 h-16 object-cover rounded-lg border shadow-sm" />) :
+                    editingProduct.image ? <img src={editingProduct.image} className="w-16 h-16 object-cover rounded-lg border shadow-sm" /> :
+                    <span className="text-xs text-stone-400">Chưa có ảnh</span>
+                  }
+                </div>
+                <label className="text-xs font-bold text-stone-500 uppercase">Thêm ảnh mới (sẽ gộp chung với ảnh cũ)</label>
+                <input name="imageFiles" type="file" multiple accept="image/*" className="w-full text-sm mt-1" />
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-stone-100">
                 <button type="button" onClick={() => setEditingProduct(null)} className="px-4 py-2 text-stone-600 font-bold bg-stone-100 rounded-lg hover:bg-stone-200">Huỷ</button>
