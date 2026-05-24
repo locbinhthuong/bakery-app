@@ -64,6 +64,77 @@ export default function Menu() {
     setActiveTab(categoryNames[0]);
   }
 
+  const handleAddToCart = (e, product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const button = e.currentTarget;
+    const card = button.closest('.bg-white');
+    const imgElement = card ? card.querySelector('img') : null;
+    
+    const startRect = imgElement ? imgElement.getBoundingClientRect() : button.getBoundingClientRect();
+    
+    const mobileCart = document.getElementById('mobile-cart-icon');
+    const desktopCart = document.getElementById('desktop-cart-icon');
+    
+    let cartIcon = null;
+    if (window.innerWidth < 768 && mobileCart) {
+      cartIcon = mobileCart;
+    } else if (desktopCart) {
+      cartIcon = desktopCart;
+    } else {
+      cartIcon = mobileCart || desktopCart;
+    }
+    
+    if (cartIcon) {
+      const endRect = cartIcon.getBoundingClientRect();
+      
+      const flyingEl = document.createElement('div');
+      flyingEl.style.position = 'fixed';
+      flyingEl.style.zIndex = '999999';
+      flyingEl.style.width = (imgElement ? startRect.width : 40) + 'px';
+      flyingEl.style.height = (imgElement ? startRect.height : 40) + 'px';
+      flyingEl.style.borderRadius = '50%';
+      flyingEl.style.overflow = 'hidden';
+      flyingEl.style.left = startRect.left + 'px';
+      flyingEl.style.top = startRect.top + 'px';
+      flyingEl.style.transition = 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+      flyingEl.style.boxShadow = '0 10px 20px rgba(0,0,0,0.2)';
+      
+      if (imgElement) {
+        const img = document.createElement('img');
+        img.src = imgElement.src;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        flyingEl.appendChild(img);
+      } else {
+        flyingEl.style.backgroundColor = '#d97706';
+      }
+      
+      document.body.appendChild(flyingEl);
+      
+      setTimeout(() => {
+        flyingEl.style.left = (endRect.left + endRect.width/2 - 10) + 'px';
+        flyingEl.style.top = (endRect.top + endRect.height/2 - 10) + 'px';
+        flyingEl.style.width = '20px';
+        flyingEl.style.height = '20px';
+        flyingEl.style.opacity = '0.3';
+      }, 10);
+      
+      setTimeout(() => {
+        if (document.body.contains(flyingEl)) {
+          document.body.removeChild(flyingEl);
+        }
+        addToCart(product);
+        cartIcon.classList.add('scale-125');
+        setTimeout(() => cartIcon.classList.remove('scale-125'), 200);
+      }, 600);
+    } else {
+      addToCart(product);
+    }
+  };
+
   const scrollToCategory = (cat) => {
     setActiveTab(cat);
     const el = document.getElementById(`cat-${cat}`);
@@ -159,7 +230,7 @@ export default function Menu() {
                   </div>
 
                   <button 
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart(product); }}
+                    onClick={(e) => handleAddToCart(e, product)}
                     className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-xs shadow-sm hover:bg-brand-500 hover:text-white transition-colors"
                   >
                     <Plus size={14} strokeWidth={3} className="mr-1" /> Thêm

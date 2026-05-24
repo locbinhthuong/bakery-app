@@ -299,7 +299,7 @@ export default function CustomerLayout() {
               className="flex items-center gap-2 text-brand-800 hover:text-brand-600 transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-brand-100"
             >
               <span className="text-sm font-bold tracking-wide uppercase">Giỏ hàng</span>
-              <div className="relative">
+              <div className="relative transition-transform duration-200" id="desktop-cart-icon">
                 <ShoppingBag size={20} strokeWidth={2} />
                 {cart.length > 0 && (
                   <span className="absolute -top-1 -right-2 w-5 h-5 bg-brand-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-white">
@@ -325,7 +325,7 @@ export default function CustomerLayout() {
           }}
           className="md:hidden fixed bottom-28 right-4 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center z-40 hover:bg-brand-700 transition-colors"
         >
-          <div className="relative">
+          <div className="relative transition-transform duration-200" id="mobile-cart-icon">
             <ShoppingBag size={24} />
             <span className="absolute -top-2 -right-2 w-5 h-5 bg-white text-brand-600 text-[11px] font-bold rounded-full flex items-center justify-center shadow-sm">
               {cart.reduce((sum, item) => sum + item.quantity, 0)}
