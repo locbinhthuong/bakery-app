@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Package, Clock, CheckCircle, ChevronLeft, MapPin } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { io } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
@@ -10,6 +11,9 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let socket;
+    let currentOrders = [];
+
     const fetchOrders = async () => {
       try {
         const savedCustomer = localStorage.getItem('bakery_customer');
@@ -17,7 +21,24 @@ export default function Orders() {
           const cust = JSON.parse(savedCustomer);
           if (cust.phone) {
             const res = await axios.get(`${BACKEND_URL}/customer/orders/${cust.phone}`);
-            setOrders(res.data.data);
+            currentOrders = res.data.data;
+            setOrders(currentOrders);
+            
+            // Nếu có đơn hàng, kết nối socket
+            if (currentOrders.length > 0) {
+              const orderIds = currentOrders.map(o => o._id).join(',');
+              if (socket) socket.disconnect(); // Đóng kết nối cũ nếu có
+              socket = io('https://api.aloshipp.com', {
+                auth: { token: 'BAKERY_APP_GUEST' },
+                query: { bakeryOrderId: orderIds }
+              });
+
+              socket.on('bakery_order_update', (updatedData) => {
+                console.log('Socket update from AloShipp:', updatedData);
+                // Load lại trang hoặc cập nhật state
+                fetchOrders();
+              });
+            }
           }
         }
       } catch (err) {
@@ -28,9 +49,10 @@ export default function Orders() {
     };
 
     fetchOrders();
-    // Poll every 10s to get updates
-    const interval = setInterval(fetchOrders, 10000);
-    return () => clearInterval(interval);
+
+    return () => {
+      if (socket) socket.disconnect();
+    };
   }, []);
 
   return (
@@ -60,12 +82,19 @@ export default function Orders() {
             <div key={order._id} className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
               <div className="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
                 <div className="flex items-center gap-2">
-                  <div className={`p-2 rounded-full ${order.status === 'PENDING' ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}`}>
-                    {order.status === 'PENDING' ? <Clock size={16} /> : <CheckCircle size={16} />}
+                  <div className={`p-2 rounded-full ${order.status === 'PENDING' || order.status === 'CONFIRMED' ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}`}>
+                    {order.status === 'PENDING' || order.status === 'CONFIRMED' ? <Clock size={16} /> : <CheckCircle size={16} />}
                   </div>
                   <div>
                     <div className="font-bold text-stone-800 text-sm">
-                      {order.status === 'PENDING' ? 'Đang chờ xác nhận' : 'Đang giao / Hoàn thành'}
+                      {order.status === 'PENDING' && 'Đang chờ xác nhận từ quán'}
+                      {order.status === 'CONFIRMED' && 'Đang tìm tài xế...'}
+                      {order.status === 'ACCEPTED' && 'Tài xế đang đến lấy'}
+                      {order.status === 'PICKED_UP' && 'Tài xế đã lấy hàng'}
+                      {order.status === 'DELIVERING' && 'Đang giao hàng'}
+                      {order.status === 'COMPLETED' && 'Giao hàng thành công'}
+                      {order.status === 'DELIVERED' && 'Giao hàng thành công'}
+                      {order.status === 'CANCELLED' && 'Đã hủy'}
                     </div>
                     <div className="text-xs text-stone-500">{new Date(order.createdAt).toLocaleString('vi-VN')}</div>
                   </div>

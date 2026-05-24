@@ -4,6 +4,7 @@ import axios from 'axios';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { io } from 'socket.io-client';
 
 // Fix leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -80,7 +81,22 @@ export default function Admin() {
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 15000);
-    return () => clearInterval(interval);
+    
+    // Kết nối Socket.io tới AloShipp
+    const socket = io('https://api.aloshipp.com', {
+      auth: { token: 'BAKERY_APP_GUEST' },
+      query: { bakeryAdmin: 'true' }
+    });
+
+    socket.on('bakery_order_update', () => {
+      // Khi có thay đổi trạng thái từ AloShipp, tự động tải lại danh sách đơn hàng ngay lập tức
+      fetchData();
+    });
+
+    return () => {
+      clearInterval(interval);
+      socket.disconnect();
+    };
   }, [activeTab]);
 
   // Upload Logic
@@ -223,6 +239,18 @@ export default function Admin() {
       fetchData();
       alert('Đã xác nhận!');
     } catch (err) { alert('Lỗi xác nhận đơn'); }
+  };
+
+  const handleCancelOrder = async (id) => {
+    if (!window.confirm('Chắc chắn muốn huỷ đơn hàng này?')) return;
+    try {
+      await axios.post(`${BACKEND_URL}/admin/orders/${id}/cancel`);
+      fetchData();
+      alert('Đã hủy đơn thành công!');
+      if (selectedOrder && selectedOrder._id === id) setSelectedOrder(null);
+    } catch (err) { 
+      alert(err.response?.data?.message || 'Lỗi khi hủy đơn'); 
+    }
   };
 
   // SETTINGS Actions
@@ -510,11 +538,14 @@ export default function Admin() {
                     <div className="flex items-center gap-3 mb-2">
                       <span className="font-bold text-lg text-brand-900">{order.customerName}</span>
                       <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold rounded-full">{order.customerPhone}</span>
-                      {order.status === 'PENDING' ? (
-                        <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Chờ Xác Nhận</span>
-                      ) : (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle size={12}/> Đã Đẩy AloShipp</span>
-                      )}
+                      {order.status === 'PENDING' && <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Chờ Xác Nhận</span>}
+                      {order.status === 'CONFIRMED' && <span className="px-3 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full">Chờ Tài Xế</span>}
+                      {order.status === 'ACCEPTED' && <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Tài Xế Đã Nhận</span>}
+                      {order.status === 'PICKED_UP' && <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">Đã Lấy Hàng</span>}
+                      {order.status === 'DELIVERING' && <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Đang Giao</span>}
+                      {order.status === 'COMPLETED' && <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle size={12}/> Hoàn Thành</span>}
+                      {order.status === 'DELIVERED' && <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle size={12}/> Đã Giao</span>}
+                      {order.status === 'CANCELLED' && <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">Đã Hủy</span>}
                     </div>
                     <p className="text-stone-600 text-sm mb-2"><MapPin size={14} className="inline mr-1" /> {order.deliveryAddress}</p>
                     <div className="text-sm font-medium text-stone-500">
@@ -656,6 +687,18 @@ export default function Admin() {
                  <p><strong>Khách hàng:</strong> {selectedOrder.customerName} - {selectedOrder.customerPhone}</p>
                  <p><strong>Địa chỉ:</strong> {selectedOrder.deliveryAddress}</p>
                  <p><strong>Ghi chú:</strong> {selectedOrder.note || 'Không có'}</p>
+                 <div className="mt-2 pt-2 border-t border-stone-200">
+                    <p className="font-bold">Trạng thái hiện tại:</p>
+                    <div className="mt-1">
+                      {selectedOrder.status === 'PENDING' && <span className="text-yellow-600 font-bold">Đang chờ xác nhận từ quán</span>}
+                      {selectedOrder.status === 'CONFIRMED' && <span className="text-brand-600 font-bold">Đang tìm tài xế AloShipp...</span>}
+                      {selectedOrder.status === 'ACCEPTED' && <span className="text-blue-600 font-bold">Tài xế đã nhận đơn và đang đến quán</span>}
+                      {selectedOrder.status === 'PICKED_UP' && <span className="text-purple-600 font-bold">Tài xế đã lấy hàng tại quán</span>}
+                      {selectedOrder.status === 'DELIVERING' && <span className="text-indigo-600 font-bold">Tài xế đang giao cho khách</span>}
+                      {['COMPLETED', 'DELIVERED'].includes(selectedOrder.status) && <span className="text-green-600 font-bold">Giao hàng thành công</span>}
+                      {selectedOrder.status === 'CANCELLED' && <span className="text-red-600 font-bold">Đơn hàng đã bị hủy</span>}
+                    </div>
+                 </div>
                </div>
                <div className="border rounded-xl p-4">
                  {selectedOrder.items.map((i, idx) => (
@@ -670,9 +713,15 @@ export default function Admin() {
                  </div>
                </div>
              </div>
-             {selectedOrder.status === 'PENDING' && (
-                <button onClick={() => { handleConfirmOrder(selectedOrder._id); setSelectedOrder(null); }} className="w-full mt-4 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận & Giao</button>
-             )}
+             
+             <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                {(selectedOrder.status === 'PENDING' || selectedOrder.status === 'CONFIRMED') && (
+                  <button onClick={() => handleCancelOrder(selectedOrder._id)} className="flex-1 py-3 bg-red-100 text-red-600 font-bold rounded-xl hover:bg-red-200">Hủy đơn hàng</button>
+                )}
+                {selectedOrder.status === 'PENDING' && (
+                  <button onClick={() => { handleConfirmOrder(selectedOrder._id); setSelectedOrder(null); }} className="flex-1 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận & Giao</button>
+                )}
+             </div>
           </div>
         </div>
       )}
