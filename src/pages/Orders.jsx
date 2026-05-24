@@ -88,7 +88,7 @@ export default function Orders() {
                   <div>
                     <div className="font-bold text-stone-800 text-sm">
                       {order.status === 'PENDING' && 'Đang chờ xác nhận từ quán'}
-                      {order.status === 'CONFIRMED' && 'Đang tìm tài xế...'}
+                      {order.status === 'CONFIRMED' && (order.deliveryMethod === 'PICKUP' ? 'Quán đã chuẩn bị xong, chờ bạn đến lấy' : 'Đang tìm tài xế...')}
                       {order.status === 'ACCEPTED' && 'Tài xế đang đến lấy'}
                       {order.status === 'PICKED_UP' && 'Tài xế đã lấy hàng'}
                       {order.status === 'DELIVERING' && 'Đang giao hàng'}
@@ -119,8 +119,8 @@ export default function Orders() {
                 <div className="bg-stone-50 rounded-xl p-3 flex gap-3 text-sm text-stone-600">
                   <MapPin size={18} className="text-stone-400 shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium text-stone-800 mb-1">{order.customerName} - {order.customerPhone}</div>
-                    <div className="line-clamp-2">{order.deliveryAddress}</div>
+                    <div className="font-medium text-stone-800 mb-1">{order.customerName} - {order.customerPhone} <span className={`ml-2 px-2 py-0.5 text-[10px] font-bold rounded ${order.deliveryMethod === 'PICKUP' ? 'bg-indigo-100 text-indigo-700' : 'bg-stone-200 text-stone-700'}`}>{order.deliveryMethod === 'PICKUP' ? 'ĐẾN LẤY' : 'GIAO TẬN NƠI'}</span></div>
+                    <div className="line-clamp-2">{order.deliveryMethod === 'PICKUP' ? `Hẹn lấy tại quán lúc: ${new Date(order.pickupTime).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'})}` : order.deliveryAddress}</div>
                   </div>
                 </div>
               </div>

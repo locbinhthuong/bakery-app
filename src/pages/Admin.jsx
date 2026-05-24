@@ -253,6 +253,15 @@ export default function Admin() {
     }
   };
 
+  const handleCompleteOrder = async (id) => {
+    try {
+      await axios.post(`${BACKEND_URL}/admin/orders/${id}/complete`);
+      fetchData();
+      alert('Đã giao bánh cho khách!');
+      if (selectedOrder && selectedOrder._id === id) setSelectedOrder(null);
+    } catch (err) { alert('Lỗi hoàn thành đơn'); }
+  };
+
   // SETTINGS Actions
   const handleSaveSettings = async (e) => {
     e.preventDefault();
@@ -537,9 +546,9 @@ export default function Admin() {
                   <div>
                     <div className="flex items-center gap-3 mb-2">
                       <span className="font-bold text-lg text-brand-900">{order.customerName}</span>
-                      <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold rounded-full">{order.customerPhone}</span>
+                      <span className={`px-3 py-1 text-xs font-bold rounded-full ${order.deliveryMethod === 'PICKUP' ? 'bg-indigo-100 text-indigo-700' : 'bg-stone-100 text-stone-600'}`}>{order.deliveryMethod === 'PICKUP' ? 'ĐẾN LẤY' : 'GIAO TẬN NƠI'}</span>
                       {order.status === 'PENDING' && <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Chờ Xác Nhận</span>}
-                      {order.status === 'CONFIRMED' && <span className="px-3 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full">Chờ Tài Xế</span>}
+                      {order.status === 'CONFIRMED' && <span className="px-3 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full">{order.deliveryMethod === 'PICKUP' ? 'Chờ Khách Đến' : 'Chờ Tài Xế'}</span>}
                       {order.status === 'ACCEPTED' && <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Tài Xế Đã Nhận</span>}
                       {order.status === 'PICKED_UP' && <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">Đã Lấy Hàng</span>}
                       {order.status === 'DELIVERING' && <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Đang Giao</span>}
@@ -547,7 +556,7 @@ export default function Admin() {
                       {order.status === 'DELIVERED' && <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle size={12}/> Đã Giao</span>}
                       {order.status === 'CANCELLED' && <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">Đã Hủy</span>}
                     </div>
-                    <p className="text-stone-600 text-sm mb-2"><MapPin size={14} className="inline mr-1" /> {order.deliveryAddress}</p>
+                    <p className="text-stone-600 text-sm mb-2"><MapPin size={14} className="inline mr-1" /> {order.deliveryMethod === 'PICKUP' ? `Hẹn lấy lúc: ${new Date(order.pickupTime).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'})}` : order.deliveryAddress}</p>
                     <div className="text-sm font-medium text-stone-500">
                       {order.items.reduce((sum, i) => sum + i.quantity, 0)} sản phẩm
                     </div>
@@ -566,7 +575,15 @@ export default function Admin() {
                         onClick={() => handleConfirmOrder(order._id)}
                         className="px-4 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm text-sm"
                       >
-                        Xác nhận & Giao
+                        Xác nhận & {order.deliveryMethod === 'PICKUP' ? 'Chuẩn bị' : 'Giao'}
+                      </button>
+                    )}
+                    {order.status === 'CONFIRMED' && order.deliveryMethod === 'PICKUP' && (
+                      <button 
+                        onClick={() => handleCompleteOrder(order._id)}
+                        className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm text-sm mt-2"
+                      >
+                        Giao khách
                       </button>
                     )}
                   </div>
@@ -684,14 +701,14 @@ export default function Admin() {
              <div className="overflow-y-auto pr-2 space-y-4">
                {/* Same details logic as before */}
                <div className="bg-stone-50 p-4 rounded-xl">
-                 <p><strong>Khách hàng:</strong> {selectedOrder.customerName} - {selectedOrder.customerPhone}</p>
-                 <p><strong>Địa chỉ:</strong> {selectedOrder.deliveryAddress}</p>
+                 <p><strong>Khách hàng:</strong> {selectedOrder.customerName} - {selectedOrder.customerPhone} ({selectedOrder.deliveryMethod === 'PICKUP' ? 'ĐẾN LẤY' : 'GIAO TẬN NƠI'})</p>
+                 <p><strong>{selectedOrder.deliveryMethod === 'PICKUP' ? 'Hẹn lấy:' : 'Địa chỉ:'}</strong> {selectedOrder.deliveryMethod === 'PICKUP' ? new Date(selectedOrder.pickupTime).toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric'}) : selectedOrder.deliveryAddress}</p>
                  <p><strong>Ghi chú:</strong> {selectedOrder.note || 'Không có'}</p>
                  <div className="mt-2 pt-2 border-t border-stone-200">
                     <p className="font-bold">Trạng thái hiện tại:</p>
                     <div className="mt-1">
                       {selectedOrder.status === 'PENDING' && <span className="text-yellow-600 font-bold">Đang chờ xác nhận từ quán</span>}
-                      {selectedOrder.status === 'CONFIRMED' && <span className="text-brand-600 font-bold">Đang tìm tài xế AloShipp...</span>}
+                      {selectedOrder.status === 'CONFIRMED' && <span className="text-brand-600 font-bold">{selectedOrder.deliveryMethod === 'PICKUP' ? 'Quán đã xác nhận, chờ khách đến lấy bánh' : 'Đang tìm tài xế AloShipp...'}</span>}
                       {selectedOrder.status === 'ACCEPTED' && <span className="text-blue-600 font-bold">Tài xế đã nhận đơn và đang đến quán</span>}
                       {selectedOrder.status === 'PICKED_UP' && <span className="text-purple-600 font-bold">Tài xế đã lấy hàng tại quán</span>}
                       {selectedOrder.status === 'DELIVERING' && <span className="text-indigo-600 font-bold">Tài xế đang giao cho khách</span>}
@@ -719,7 +736,10 @@ export default function Admin() {
                   <button onClick={() => handleCancelOrder(selectedOrder._id)} className="flex-1 py-3 bg-red-100 text-red-600 font-bold rounded-xl hover:bg-red-200">Hủy đơn hàng</button>
                 )}
                 {selectedOrder.status === 'PENDING' && (
-                  <button onClick={() => { handleConfirmOrder(selectedOrder._id); setSelectedOrder(null); }} className="flex-1 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận & Giao</button>
+                  <button onClick={() => { handleConfirmOrder(selectedOrder._id); setSelectedOrder(null); }} className="flex-1 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận & {selectedOrder.deliveryMethod === 'PICKUP' ? 'Chuẩn bị' : 'Giao'}</button>
+                )}
+                {selectedOrder.status === 'CONFIRMED' && selectedOrder.deliveryMethod === 'PICKUP' && (
+                  <button onClick={() => { handleCompleteOrder(selectedOrder._id); setSelectedOrder(null); }} className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700">Khách đã lấy (Hoàn thành)</button>
                 )}
              </div>
           </div>
