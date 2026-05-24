@@ -93,6 +93,11 @@ export default function Admin() {
       fetchData();
     });
 
+    socket.on('connect', () => {
+      console.log('Socket reconnected, fetching latest data...');
+      fetchData();
+    });
+
     return () => {
       clearInterval(interval);
       socket.disconnect();

@@ -283,7 +283,7 @@ export default function CustomerLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-50 font-sans text-brand-900 selection:bg-brand-200 selection:text-brand-900 pb-24 md:pb-0 relative">
+    <div className="min-h-[100dvh] bg-brand-50 font-sans text-brand-900 selection:bg-brand-200 selection:text-brand-900 pb-24 md:pb-0 relative">
       
       {/* Desktop Navigation (Kept simple, mobile will rely on bottom nav) */}
       <nav className={`hidden md:flex fixed top-0 w-full z-50 transition-all duration-500 ease-out-expo ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-6'}`}>
@@ -620,7 +620,10 @@ export default function CustomerLayout() {
       )}
 
       {/* Mobile Bottom Navigation - Phê La Style */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-brand-100 flex justify-between items-end pb-5 pt-2 px-2 z-40 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.06)]">
+      <div 
+        className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-brand-100 flex justify-between items-end pt-2 px-2 z-40 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.06)]"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+      >
         <Link to="/" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/' ? 'text-brand-900' : 'text-brand-800'}`}>
           <HomeIcon size={24} strokeWidth={location.pathname === '/' ? 2.5 : 2} fill={location.pathname === '/' ? 'currentColor' : 'none'} className={location.pathname === '/' ? 'text-brand-900' : ''}/>
           <span className="text-[10px] font-bold">Trang chủ</span>

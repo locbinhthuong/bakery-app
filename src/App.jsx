@@ -15,7 +15,7 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-brand-50 font-sans text-stone-900">
+      <div className="min-h-[100dvh] bg-brand-50 font-sans text-stone-900">
         {isAdminDomain ? (
           <Routes>
             {/* Nếu truy cập bằng tên miền Admin, trang chủ '/' sẽ là Admin luôn */}

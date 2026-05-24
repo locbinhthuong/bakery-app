@@ -36,7 +36,13 @@ export default function Orders() {
 
               socket.on('bakery_order_update', (updatedData) => {
                 console.log('Socket update from AloShipp:', updatedData);
-                // Load lại trang hoặc cập nhật state
+                fetchOrders();
+              });
+
+              // Quan trọng cho Mobile PWA: Khi Safari wake up từ background, socket sẽ reconnect.
+              // Lúc này ta cần fetch lại để lấy dữ liệu có thể đã bị lỡ lúc app đang ngủ.
+              socket.on('connect', () => {
+                console.log('Socket reconnected, fetching latest orders...');
                 fetchOrders();
               });
             }
