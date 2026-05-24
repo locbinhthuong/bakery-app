@@ -194,7 +194,7 @@ export default function Admin() {
         title: fd.get('title'),
         content: fd.get('content'),
         image: imageUrl,
-        code: fd.get('code') || '',
+        code: (fd.get('code') || '').toUpperCase(),
         discountType: fd.get('discountType') || 'NONE',
         discountValue: Number(fd.get('discountValue')) || 0,
         minOrderValue: Number(fd.get('minOrderValue')) || 0,
