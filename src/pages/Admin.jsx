@@ -41,9 +41,10 @@ export default function Admin() {
   
   const [selectedOrder, setSelectedOrder] = useState(null);
   
-  // States for Editing Product/Customer
+  // States for Editing Product/Customer/Promo
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editingPromo, setEditingPromo] = useState(null);
 
   // States for Sub-tabs in Menu
   const [menuSubTab, setMenuSubTab] = useState('products'); // 'products' or 'categories'
@@ -264,6 +265,37 @@ export default function Admin() {
       fetchData();
     } catch (err) { alert('Lỗi xoá'); }
   };
+  const handleUpdatePromo = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const imageFile = fd.get('imageFile');
+    let imageUrl = editingPromo.image;
+    if (imageFile && imageFile.name) {
+      const url = await uploadImageFile(imageFile);
+      if (url) imageUrl = url;
+    }
+
+    try {
+      await axios.put(`${BACKEND_URL}/admin/promos/${editingPromo._id}`, {
+        title: fd.get('title'),
+        content: fd.get('content'),
+        image: imageUrl,
+        code: fd.get('code') !== null ? fd.get('code').toUpperCase() : editingPromo.code,
+        postType: fd.get('postType') || editingPromo.postType,
+        discountType: fd.get('discountType') || editingPromo.discountType,
+        discountValue: fd.get('discountValue') !== null ? Number(fd.get('discountValue')) : editingPromo.discountValue,
+        minOrderValue: fd.get('minOrderValue') !== null ? Number(fd.get('minOrderValue')) : editingPromo.minOrderValue,
+        totalUsageLimit: fd.get('totalUsageLimit') !== null ? Number(fd.get('totalUsageLimit')) : editingPromo.totalUsageLimit,
+        maxUsagePerUser: fd.get('maxUsagePerUser') !== null ? Number(fd.get('maxUsagePerUser')) : editingPromo.maxUsagePerUser,
+        startDate: fd.get('startDate') ? new Date(fd.get('startDate')).toISOString() : editingPromo.startDate,
+        endDate: fd.get('endDate') ? new Date(fd.get('endDate')).toISOString() : editingPromo.endDate,
+        isActive: editingPromo.isActive
+      });
+      setEditingPromo(null);
+      fetchData();
+      alert('Đã cập nhật bài đăng/mã giảm giá');
+    } catch (err) { alert('Lỗi cập nhật'); }
+  };
 
   // CUSTOMERS Actions
   const handleUpdateCustomer = async (e) => {
@@ -345,7 +377,7 @@ export default function Admin() {
 
   const menuItems = [
     { id: 'home', icon: Tag, label: 'Trang chủ' },
-    { id: 'menu', icon: Package, label: 'Đặt hàng' },
+    { id: 'menu', icon: Package, label: 'Sản phẩm' },
     { id: 'orders', icon: ShoppingCart, label: 'Đơn hàng' },
     { id: 'customers', icon: Users, label: 'Khách hàng' },
     { id: 'settings', icon: Settings, label: 'Cài đặt' },
@@ -446,61 +478,37 @@ export default function Admin() {
                       <option value="NEWS">Tin tức (News)</option>
                       <option value="EVENT">Sự kiện (Event)</option>
                     </select>
-                    <input name="title" type="text" placeholder="Tiêu đề bài viết / Tên Voucher" required className="col-span-2 w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
+                    <input name="title" type="text" placeholder="Tiêu đề bài viết" required className="col-span-2 w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
                   </div>
                   <textarea name="content" rows="2" placeholder="Nội dung chi tiết" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
-                    <input name="code" type="text" placeholder="Mã (tuỳ chọn)" className="px-4 py-2 bg-white border rounded-lg outline-none uppercase" />
-                    <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
-                      <option value="NONE">Không giảm</option>
-                      <option value="FIXED">Cố định</option>
-                      <option value="PERCENT">Phần trăm</option>
-                    </select>
-                    <input name="discountValue" type="number" placeholder="Mức giảm" className="px-4 py-2 bg-white border rounded-lg outline-none" />
+                  <div>
+                    <label className="block text-xs font-bold text-stone-500 mb-1">Hình ảnh đính kèm (Tùy chọn)</label>
+                    <input name="imageFile" type="file" accept="image/*" className="w-full text-sm" />
                   </div>
 
-                  <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg space-y-4">
-                    <h4 className="font-bold text-stone-700 text-sm">Cài đặt nâng cao (Để trống nếu không dùng)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian bắt đầu</label>
-                        <input name="startDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian kết thúc</label>
-                        <input name="endDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Đơn tối thiểu (VNĐ)</label>
-                        <input name="minOrderValue" type="number" placeholder="0" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Tổng lượt dùng</label>
-                        <input name="totalUsageLimit" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Lượt dùng/Khách</label>
-                        <input name="maxUsagePerUser" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                    </div>
+                  <div className="flex justify-end pt-2">
+                    <button type="submit" className="py-2.5 px-8 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Đăng lên</button>
                   </div>
-
-                  <input name="imageFile" type="file" accept="image/*" className="w-full text-sm" />
-                  <button type="submit" className="py-2.5 px-6 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 w-full md:w-auto">Đăng lên</button>
                 </form>
 
                 <div className="space-y-3">
                   {promos.filter(p => p.postType !== 'VOUCHER').map(promo => (
                     <div key={promo._id} className="p-4 rounded-xl border border-stone-100 flex gap-4 items-center">
+                      {promo.image && (
+                        <div className="w-16 h-16 bg-stone-100 rounded-lg overflow-hidden shrink-0">
+                          <img src={promo.image} alt="Promo" className="w-full h-full object-cover" />
+                        </div>
+                      )}
                       <div className="flex-1">
-                        <div className="font-bold">{promo.title}</div>
+                        <div className="font-bold text-brand-900">{promo.title}</div>
                         <div className="text-sm text-stone-500 line-clamp-1">{promo.content}</div>
+                        <div className="text-xs font-bold text-brand-600 mt-1">{promo.postType === 'ADS' ? 'QUẢNG CÁO' : promo.postType === 'NEWS' ? 'TIN TỨC' : 'SỰ KIỆN'}</div>
                       </div>
-                      <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                      <div className="flex gap-2">
+                        <button onClick={() => setEditingPromo(promo)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={18} /></button>
+                        <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -512,73 +520,7 @@ export default function Admin() {
           {activeTab === 'menu' && (
             <div className="space-y-8 animate-in fade-in duration-500 max-w-6xl mx-auto">
               
-              {/* VOUCHER SECTION IN MENU TAB */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-brand-200/60 mb-8">
-                <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Ticket size={20} className="text-brand-600" /> Quản lý Mã Giảm Giá</h3>
-                <form onSubmit={handleAddPromo} className="space-y-4 mb-6 border-b border-stone-100 pb-6">
-                  <input type="hidden" name="postType" value="VOUCHER" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input name="title" type="text" placeholder="Tên Voucher (VD: Giảm 20K cho đơn từ 100K)" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none font-bold" />
-                    <input name="code" type="text" placeholder="MÃ CODE (Viết liền không dấu)" required className="w-full px-4 py-2 bg-white border border-brand-200 rounded-lg outline-none uppercase font-bold text-brand-700" />
-                  </div>
-                  <textarea name="content" rows="2" placeholder="Nội dung mô tả (tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
-                      <option value="FIXED">Giảm số tiền cố định</option>
-                      <option value="PERCENT">Giảm theo phần trăm</option>
-                    </select>
-                    <input name="discountValue" type="number" placeholder="Mức giảm (VD: 20000 hoặc 15)" required className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
-                  </div>
-
-                  <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg space-y-4">
-                    <h4 className="font-bold text-stone-700 text-sm">Cài đặt nâng cao</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian bắt đầu</label>
-                        <input name="startDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian kết thúc</label>
-                        <input name="endDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Đơn tối thiểu (VNĐ)</label>
-                        <input name="minOrderValue" type="number" placeholder="0" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Tổng lượt dùng</label>
-                        <input name="totalUsageLimit" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-500 mb-1">Lượt dùng/Khách</label>
-                        <input name="maxUsagePerUser" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <button type="submit" className="py-2.5 px-8 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Tạo Mã Giảm Giá</button>
-                  </div>
-                </form>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {promos.filter(p => p.postType === 'VOUCHER').map(promo => (
-                    <div key={promo._id} className="p-4 rounded-xl border border-brand-200 bg-brand-50 flex gap-4 items-center">
-                      <div className="flex-1">
-                        <div className="font-bold text-brand-800">{promo.code} - {promo.title}</div>
-                        <div className="text-sm text-stone-600">Giảm: {promo.discountValue}{promo.discountType==='PERCENT'?'%':'đ'} {promo.minOrderValue>0 ? `(Đơn từ ${promo.minOrderValue.toLocaleString('vi-VN')})`:''}</div>
-                      </div>
-                      <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-red-500 hover:bg-red-100 rounded-lg"><Trash2 size={18} /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* TABS FOR MENU OR CATEGORIES */}
+              {/* TABS FOR MENU OR CATEGORIES OR VOUCHERS */}
               <div className="flex gap-4 border-b border-stone-200 mb-6 px-2 overflow-x-auto">
                 <button 
                   onClick={() => setMenuSubTab('products')} 
@@ -592,7 +534,84 @@ export default function Admin() {
                 >
                   Bộ Lọc (Danh mục)
                 </button>
+                <button 
+                  onClick={() => setMenuSubTab('vouchers')} 
+                  className={`font-bold pb-2 border-b-2 transition-colors ${menuSubTab === 'vouchers' ? 'text-brand-600 border-brand-600' : 'text-stone-500 border-transparent hover:text-stone-800'}`}
+                >
+                  Mã Giảm Giá
+                </button>
               </div>
+
+              {/* VOUCHERS SUB-TAB */}
+              {menuSubTab === 'vouchers' && (
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-brand-200/60 mb-8 animate-in fade-in duration-300">
+                  <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Ticket size={20} className="text-brand-600" /> Quản lý Mã Giảm Giá</h3>
+                  <form onSubmit={handleAddPromo} className="space-y-4 mb-6 border-b border-stone-100 pb-6">
+                    <input type="hidden" name="postType" value="VOUCHER" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input name="title" type="text" placeholder="Tên Voucher (VD: Giảm 20K cho đơn từ 100K)" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none font-bold" />
+                      <input name="code" type="text" placeholder="MÃ CODE (Viết liền không dấu)" required className="w-full px-4 py-2 bg-white border border-brand-200 rounded-lg outline-none uppercase font-bold text-brand-700" />
+                    </div>
+                    <textarea name="content" rows="2" placeholder="Nội dung mô tả (tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
+                        <option value="FIXED">Giảm số tiền cố định</option>
+                        <option value="PERCENT">Giảm theo phần trăm</option>
+                      </select>
+                      <input name="discountValue" type="number" placeholder="Mức giảm (VD: 20000 hoặc 15)" required className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
+                    </div>
+
+                    <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg space-y-4">
+                      <h4 className="font-bold text-stone-700 text-sm">Cài đặt nâng cao</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian bắt đầu</label>
+                          <input name="startDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian kết thúc</label>
+                          <input name="endDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">Đơn tối thiểu (VNĐ)</label>
+                          <input name="minOrderValue" type="number" placeholder="0" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">Tổng lượt dùng</label>
+                          <input name="totalUsageLimit" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">Lượt dùng/Khách</label>
+                          <input name="maxUsagePerUser" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <button type="submit" className="py-2.5 px-8 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Tạo Mã Giảm Giá</button>
+                    </div>
+                  </form>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {promos.filter(p => p.postType === 'VOUCHER').map(promo => (
+                      <div key={promo._id} className="p-4 rounded-xl border border-brand-200 bg-brand-50 flex gap-4 items-center">
+                        <div className="flex-1">
+                          <div className="font-bold text-brand-800">{promo.code} - {promo.title}</div>
+                          <div className="text-sm text-stone-600">Giảm: {promo.discountValue}{promo.discountType==='PERCENT'?'%':'đ'} {promo.minOrderValue>0 ? `(Đơn từ ${promo.minOrderValue.toLocaleString('vi-VN')})`:''}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingPromo(promo)} className="p-2 text-blue-500 hover:bg-blue-100 rounded-lg"><Edit2 size={18} /></button>
+                          <button onClick={() => handleDeletePromo(promo._id)} className="p-2 text-red-500 hover:bg-red-100 rounded-lg"><Trash2 size={18} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* PRODUCTS SUB-TAB */}
               {menuSubTab === 'products' && (
