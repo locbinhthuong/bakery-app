@@ -48,6 +48,7 @@ export default function CustomerLayout() {
   const [appliedPromo, setAppliedPromo] = useState(null);
   
   const [settings, setSettings] = useState(null);
+  const [shippingConfig, setShippingConfig] = useState(null);
   const [customerLocation, setCustomerLocation] = useState(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
@@ -77,6 +78,14 @@ export default function CustomerLayout() {
       
     axios.get(`${BACKEND_URL}/settings`)
       .then(res => setSettings(res.data.data))
+      .catch(err => console.error(err));
+      
+    axios.get(`https://api.aloshipp.com/api/config/PRICING_CONFIG`)
+      .then(res => {
+        if (res.data && res.data.data && res.data.data.value) {
+          setShippingConfig(res.data.data.value);
+        }
+      })
       .catch(err => console.error(err));
       
     const token = localStorage.getItem('bakery_token');
@@ -122,7 +131,33 @@ export default function CustomerLayout() {
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
-  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0);
+  let previewShippingFee = 0;
+  let distanceKm = 0;
+  if (settings && customerLocation && settings.storeLocation && shippingConfig) {
+    const lat1 = settings.storeLocation.lat;
+    const lon1 = settings.storeLocation.lng;
+    const lat2 = customerLocation.lat;
+    const lon2 = customerLocation.lng;
+    
+    const R = 6371; 
+    const dLat = (lat2 - lat1) * (Math.PI / 180);  
+    const dLon = (lon2 - lon1) * (Math.PI / 180); 
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+    distanceKm = R * c; 
+
+    if (distanceKm <= shippingConfig.baseDistance) {
+      previewShippingFee = shippingConfig.basePrice;
+    } else {
+      const extraKm = Math.ceil(distanceKm - shippingConfig.baseDistance);
+      previewShippingFee = shippingConfig.basePrice + (extraKm * shippingConfig.pricePerKm);
+    }
+  }
+
+  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0) + previewShippingFee;
 
   useEffect(() => {
     if (cart.length === 0) setAppliedPromo(null);
@@ -318,6 +353,12 @@ export default function CustomerLayout() {
                         <span>-{appliedPromo.discountAmount.toLocaleString('vi-VN')} ₫</span>
                       </div>
                     )}
+                    {previewShippingFee > 0 && (
+                      <div className="flex justify-between items-center text-stone-600 text-sm font-medium">
+                        <span>Phí giao hàng dự kiến</span>
+                        <span>+{previewShippingFee.toLocaleString('vi-VN')} ₫</span>
+                      </div>
+                    )}
                     <div className="pt-3 border-t border-brand-100/50 flex justify-between items-center text-lg font-bold text-stone-900">
                       <span>Tổng cộng</span>
                       <span className="text-brand-600 text-xl">{finalAmount.toLocaleString('vi-VN')} ₫</span>
@@ -412,6 +453,11 @@ export default function CustomerLayout() {
                   />
                 </MapContainer>
              </div>
+             {customerLocation && shippingConfig && distanceKm > 0 && (
+               <div className="px-4 pt-4 text-center text-sm font-bold text-brand-700">
+                 Khoảng cách: {distanceKm.toFixed(1)} km - Phí ship dự kiến: {previewShippingFee.toLocaleString('vi-VN')} ₫
+               </div>
+             )}
              <div className="p-4 bg-white border-t border-stone-100">
                <button onClick={() => setIsMapOpen(false)} className="w-full py-3.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận vị trí</button>
              </div>
