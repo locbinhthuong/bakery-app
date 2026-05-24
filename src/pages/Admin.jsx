@@ -197,6 +197,11 @@ export default function Admin() {
         code: fd.get('code') || '',
         discountType: fd.get('discountType') || 'NONE',
         discountValue: Number(fd.get('discountValue')) || 0,
+        minOrderValue: Number(fd.get('minOrderValue')) || 0,
+        totalUsageLimit: Number(fd.get('totalUsageLimit')) || 0,
+        maxUsagePerUser: Number(fd.get('maxUsagePerUser')) || 0,
+        startDate: fd.get('startDate') ? new Date(fd.get('startDate')).toISOString() : null,
+        endDate: fd.get('endDate') ? new Date(fd.get('endDate')).toISOString() : null,
         isActive: true
       });
       e.target.reset();
@@ -336,8 +341,9 @@ export default function Admin() {
                 <form onSubmit={handleAddPromo} className="space-y-4 mb-8 border-b border-stone-100 pb-8">
                   <input name="title" type="text" placeholder="Tiêu đề" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
                   <textarea name="content" rows="2" placeholder="Nội dung" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
-                  <div className="flex gap-4">
-                    <input name="code" type="text" placeholder="Mã (tuỳ chọn)" className="flex-1 px-4 py-2 bg-white border rounded-lg outline-none uppercase" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input name="code" type="text" placeholder="Mã (tuỳ chọn)" className="px-4 py-2 bg-white border rounded-lg outline-none uppercase" />
                     <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
                       <option value="NONE">Không giảm</option>
                       <option value="FIXED">Cố định</option>
@@ -345,8 +351,38 @@ export default function Admin() {
                     </select>
                     <input name="discountValue" type="number" placeholder="Mức giảm" className="px-4 py-2 bg-white border rounded-lg outline-none" />
                   </div>
+
+                  <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg space-y-4">
+                    <h4 className="font-bold text-stone-700 text-sm">Cài đặt nâng cao (Để trống nếu không dùng)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian bắt đầu</label>
+                        <input name="startDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Thời gian kết thúc</label>
+                        <input name="endDate" type="datetime-local" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Đơn tối thiểu (VNĐ)</label>
+                        <input name="minOrderValue" type="number" placeholder="0" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Tổng lượt dùng</label>
+                        <input name="totalUsageLimit" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-500 mb-1">Lượt dùng/Khách</label>
+                        <input name="maxUsagePerUser" type="number" placeholder="0 = Vô hạn" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                      </div>
+                    </div>
+                  </div>
+
                   <input name="imageFile" type="file" accept="image/*" className="w-full text-sm" />
-                  <button type="submit" className="py-2.5 px-6 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Đăng lên</button>
+                  <button type="submit" className="py-2.5 px-6 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 w-full md:w-auto">Đăng lên</button>
                 </form>
 
                 <div className="space-y-3">

@@ -228,7 +228,18 @@ export default function CustomerLayout() {
   const applyDiscount = async () => {
     if (!discountCode) return alert('Vui lòng nhập mã ưu đãi');
     try {
-      const res = await axios.post(`${BACKEND_URL}/promos/validate`, { code: discountCode.toUpperCase(), totalAmount });
+      let customerPhone = null;
+      const savedCustomer = localStorage.getItem('bakery_customer');
+      if (savedCustomer) {
+        const cust = JSON.parse(savedCustomer);
+        customerPhone = cust.phone;
+      }
+      
+      const res = await axios.post(`${BACKEND_URL}/promos/validate`, { 
+        code: discountCode.toUpperCase(), 
+        totalAmount,
+        customerPhone 
+      });
       setAppliedPromo(res.data.data);
     } catch (err) {
       alert(err.response?.data?.message || 'Mã ưu đãi không hợp lệ');
