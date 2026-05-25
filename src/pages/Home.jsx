@@ -1,5 +1,49 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+function PromoSlider({ promo }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const images = (promo.images && promo.images.length > 0) ? promo.images : (promo.image ? [promo.image] : []);
+
+  useEffect(() => {
+    if (images.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, 3500);
+      return () => clearInterval(timer);
+    }
+  }, [images.length]);
+
+  if (images.length === 0) {
+    return (
+      <div className="w-full h-full bg-brand-800 flex items-center justify-center">
+        <CakeSlice size={48} className="text-brand-200" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full overflow-hidden bg-stone-100">
+      {images.map((img, i) => (
+        <img 
+          key={i} 
+          src={img} 
+          alt={`${promo.title} ${i}`} 
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === currentIndex ? 'opacity-100' : 'opacity-0'}`} 
+        />
+      ))}
+      {/* dots indicator */}
+      {images.length > 1 && (
+        <div className="absolute top-4 right-4 flex gap-1.5 z-10 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm">
+          {images.map((_, i) => (
+            <div key={i} className={`w-2 h-2 rounded-full transition-all duration-300 ${i === currentIndex ? 'bg-white w-4' : 'bg-white/50'}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   const { products, addToCart, customer, promos } = useOutletContext();
@@ -24,30 +68,26 @@ export default function Home() {
         {newsPromos.length > 0 ? (
           <div className="flex overflow-x-auto gap-4 snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
             {newsPromos.map(promo => (
-              <div key={promo._id} className="min-w-full w-full aspect-[4/3] rounded-2xl overflow-hidden relative shadow-md snap-center shrink-0">
-                {promo.image ? (
-                  <img src={promo.image} alt={promo.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-brand-800 flex items-center justify-center">
-                    <CakeSlice size={48} className="text-brand-200" />
+              <div key={promo._id} className="min-w-full w-full aspect-[16/9] md:aspect-[21/9] lg:aspect-[3/1] rounded-2xl overflow-hidden relative shadow-md snap-center shrink-0">
+                <PromoSlider promo={promo} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-8">
+                  <div className="flex gap-2">
+                    {promo.postType === 'ADS' && <span className="text-[10px] md:text-xs font-bold bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Quảng Cáo</span>}
+                    {promo.postType === 'EVENT' && <span className="text-[10px] md:text-xs font-bold bg-purple-500 text-white px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Sự Kiện</span>}
+                    {promo.postType === 'NEWS' && <span className="text-[10px] md:text-xs font-bold bg-blue-500 text-white px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Tin Tức</span>}
                   </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                  {promo.postType === 'ADS' && <span className="text-[10px] font-bold bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full w-max mb-2 uppercase">Quảng Cáo</span>}
-                  {promo.postType === 'EVENT' && <span className="text-[10px] font-bold bg-purple-500 text-white px-2 py-0.5 rounded-full w-max mb-2 uppercase">Sự Kiện</span>}
-                  {promo.postType === 'NEWS' && <span className="text-[10px] font-bold bg-blue-500 text-white px-2 py-0.5 rounded-full w-max mb-2 uppercase">Tin Tức</span>}
-                  <h2 className="text-white font-serif text-2xl font-bold mb-1 leading-tight">{promo.title}</h2>
-                  <p className="text-stone-200 text-sm font-medium line-clamp-2">{promo.content}</p>
+                  {promo.title && <h2 className="text-white font-serif text-2xl md:text-4xl font-bold mb-2 leading-tight drop-shadow-md">{promo.title}</h2>}
+                  {promo.content && <p className="text-stone-100 text-sm md:text-base font-medium line-clamp-2 md:line-clamp-3 drop-shadow-md max-w-3xl">{promo.content}</p>}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden relative shadow-md">
+          <div className="w-full aspect-[16/9] md:aspect-[21/9] lg:aspect-[3/1] rounded-2xl overflow-hidden relative shadow-md">
             <img src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?q=80&w=2000&auto=format&fit=crop" alt="Banner" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/60 to-transparent flex flex-col justify-end p-6">
-              <h2 className="text-white font-serif text-3xl font-bold mb-1">Sweet Bakery</h2>
-              <p className="text-brand-50 text-sm font-medium">Bánh tươi mỗi ngày</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/60 to-transparent flex flex-col justify-end p-6 md:p-8">
+              <h2 className="text-white font-serif text-3xl md:text-5xl font-bold mb-2">Sweet Bakery</h2>
+              <p className="text-brand-50 text-sm md:text-base font-medium">Bánh tươi mỗi ngày</p>
             </div>
           </div>
         )}
