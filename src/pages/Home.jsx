@@ -1,6 +1,7 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import ProductImageSlider from '../components/ProductImageSlider';
 
 function PromoSlider({ promo }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -117,19 +118,7 @@ export default function Home() {
             <div key={product._id} className="min-w-[160px] max-w-[160px] snap-start">
               <div className="w-full aspect-[4/5] bg-white rounded-2xl mb-3 overflow-hidden relative shadow-sm border border-brand-100/50">
                 <div className="absolute top-2 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-10 pointer-events-none">MỚI</div>
-                {(product.images && product.images.length > 0) ? (
-                  <div className="flex overflow-x-auto snap-x snap-mandatory h-full w-full scroll-smooth" style={{ scrollbarWidth: 'none' }}>
-                    {product.images.map((img, i) => (
-                      <img key={i} src={img} alt={`${product.name} ${i}`} className="w-full h-full object-cover shrink-0 snap-center" />
-                    ))}
-                  </div>
-                ) : product.image ? (
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-brand-300 bg-brand-50">
-                    <CakeSlice size={32} />
-                  </div>
-                )}
+                <ProductImageSlider images={product.images} fallbackImage={product.image} productName={product.name} />
                 <button 
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart(product); }}
                   className="absolute bottom-2 right-2 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-brand-600 shadow-md hover:bg-brand-600 hover:text-white transition-colors"

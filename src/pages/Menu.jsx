@@ -2,6 +2,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Search, Plus, CakeSlice, ShoppingBag, Clock, CheckCircle } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import axios from 'axios';
+import ProductImageSlider from '../components/ProductImageSlider';
 
 export default function Menu() {
   const { products, categories: dbCategories, addToCart } = useOutletContext();
@@ -210,19 +211,7 @@ export default function Menu() {
                   <div className="absolute top-2 left-0 bg-brand-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-r">MỚI</div>
                   
                   <div className="w-24 h-24 bg-brand-50 rounded-xl overflow-hidden shrink-0 relative group">
-                    {(product.images && product.images.length > 0) ? (
-                      <div className="flex overflow-x-auto snap-x snap-mandatory h-full w-full scroll-smooth" style={{ scrollbarWidth: 'none' }}>
-                        {product.images.map((img, i) => (
-                          <img key={i} src={img} alt={`${product.name} ${i}`} className="w-full h-full object-cover shrink-0 snap-center" />
-                        ))}
-                      </div>
-                    ) : product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-brand-300">
-                        <CakeSlice size={24} />
-                      </div>
-                    )}
+                    <ProductImageSlider images={product.images} fallbackImage={product.image} productName={product.name} />
                   </div>
                   
                   <div className="flex-1 flex flex-col justify-between py-1">
