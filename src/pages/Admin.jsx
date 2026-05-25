@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { io } from 'socket.io-client';
+import CropperModal from '../components/CropperModal';
 
 // Fix leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -48,6 +49,11 @@ export default function Admin() {
 
   // States for Sub-tabs in Menu
   const [menuSubTab, setMenuSubTab] = useState('products'); // 'products' or 'categories'
+
+  // Cropper states
+  const [cropQueue, setCropQueue] = useState([]);
+  const [currentCropIndex, setCurrentCropIndex] = useState(0);
+  const [croppedPromoImages, setCroppedPromoImages] = useState([]);
 
   const fetchData = async () => {
     try {
@@ -123,6 +129,17 @@ export default function Admin() {
       };
       reader.onerror = () => resolve(null);
     });
+  };
+
+  const uploadBase64Image = async (base64) => {
+    if (!base64) return null;
+    try {
+      const res = await axios.post(`${BACKEND_URL}/upload`, { image: base64 });
+      return res.data.url.startsWith('http') ? res.data.url : BACKEND_URL.replace('/api/shop', '') + res.data.url;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
   };
 
   // CATEGORIES Actions
@@ -230,25 +247,49 @@ export default function Admin() {
     } catch (err) { alert('Lỗi cập nhật món bán chạy'); }
   };
 
+  const handlePromoImageSelect = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    const urls = await Promise.all(files.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.readAsDataURL(file);
+      });
+    }));
+    setCropQueue(urls);
+    setCurrentCropIndex(0);
+    setCroppedPromoImages([]);
+    e.target.value = null; // reset input
+  };
+
+  const handleCropComplete = (croppedBase64) => {
+    const newCroppedImages = [...croppedPromoImages, croppedBase64];
+    setCroppedPromoImages(newCroppedImages);
+    
+    if (currentCropIndex < cropQueue.length - 1) {
+      setCurrentCropIndex(currentCropIndex + 1);
+    } else {
+      setCropQueue([]);
+      setCurrentCropIndex(0);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setCropQueue([]);
+    setCurrentCropIndex(0);
+    setCroppedPromoImages([]);
+  };
+
   // PROMOS Actions
   const handleAddPromo = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    
-    const imageFiles = fd.getAll('imageFiles');
     const uploadedImages = [];
 
-    const singleImageFile = fd.get('imageFile');
-    if (singleImageFile && singleImageFile.name) {
-      const singleUrl = await uploadImageFile(singleImageFile);
-      if (singleUrl) uploadedImages.push(singleUrl);
-    }
-
-    for (const file of imageFiles) {
-      if (file && file.name) {
-        const url = await uploadImageFile(file);
-        if (url) uploadedImages.push(url);
-      }
+    for (const base64 of croppedPromoImages) {
+      const url = await uploadBase64Image(base64);
+      if (url) uploadedImages.push(url);
     }
 
     try {
@@ -513,7 +554,19 @@ export default function Admin() {
                   <div>
                     <label className="block text-xs font-bold text-stone-500 mb-1">Hình ảnh đính kèm (Tùy chọn, có thể chọn nhiều ảnh)</label>
                     <p className="text-[11px] text-stone-400 mb-2 italic">Khuyên dùng ảnh phong cảnh (tỉ lệ ngang 21:9 hoặc 16:9) để hiển thị đẹp nhất trên cả Web và Mobile.</p>
-                    <input name="imageFiles" type="file" multiple accept="image/*" className="w-full text-sm" />
+                    <input name="imageFiles" type="file" multiple accept="image/*" onChange={handlePromoImageSelect} className="w-full text-sm" />
+                    
+                    {croppedPromoImages.length > 0 && (
+                      <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                        {croppedPromoImages.map((src, idx) => (
+                          <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-brand-200">
+                            <img src={src} className="w-full h-full object-cover" />
+                            <div className="absolute top-0 left-0 w-full bg-brand-500 text-white text-[10px] text-center font-bold py-0.5 shadow-sm">Đã cắt</div>
+                            <button type="button" onClick={() => setCroppedPromoImages(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center text-red-500 shadow hover:bg-red-50"><X size={12}/></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-end pt-2">
@@ -986,7 +1039,13 @@ export default function Admin() {
               </div>
             </form>
           </div>
-        </div>
+      {/* Cropper Modal */}
+      {cropQueue.length > 0 && (
+        <CropperModal 
+          imageUrl={cropQueue[currentCropIndex]} 
+          onCropComplete={handleCropComplete} 
+          onCancel={handleCropCancel} 
+        />
       )}
 
     </div>
