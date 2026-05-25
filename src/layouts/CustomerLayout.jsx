@@ -363,7 +363,7 @@ export default function CustomerLayout() {
                 <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center text-white shadow-md">
                   <CakeSlice size={24} />
                 </div>
-                <span className="text-3xl font-serif font-bold tracking-tight text-stone-900">Le Petit Bakery</span>
+                <span className="text-3xl font-serif font-bold tracking-tight text-stone-900">Sweet Bakery</span>
               </div>
               <p className="text-stone-600 leading-relaxed max-w-sm mb-8 mt-6">
                 Mang đến hương vị ngọt ngào và lãng mạn từ những mẻ bánh Pháp thủ công, được nướng bằng cả trái tim.
@@ -389,7 +389,7 @@ export default function CustomerLayout() {
             </div>
           </div>
           <div className="pt-8 border-t border-brand-200 text-center text-sm text-stone-500 font-medium">
-            © 2026 Le Petit Bakery. All rights reserved.
+            © 2026 Sweet Bakery. All rights reserved.
           </div>
         </div>
       </footer>

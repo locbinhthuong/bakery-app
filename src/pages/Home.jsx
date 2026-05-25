@@ -57,7 +57,7 @@ export default function Home() {
       {/* Top Header Section (Mobile Only) */}
       <div className="pt-10 px-4 pb-4 md:hidden">
         <h1 className="text-2xl font-serif font-bold text-stone-900 text-center tracking-wide">
-          Le Petit Bakery
+          Sweet Bakery
         </h1>
       </div>
 
@@ -66,7 +66,7 @@ export default function Home() {
         {newsPromos.length > 0 ? (
           <div className="flex overflow-x-auto gap-4 snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
             {newsPromos.map(promo => (
-              <div key={promo._id} className="min-w-full w-full aspect-[16/9] md:aspect-[21/9] lg:aspect-[3/1] rounded-2xl overflow-hidden relative shadow-md snap-center shrink-0">
+              <div key={promo._id} className="min-w-full w-full aspect-[4/3] md:aspect-[16/7] lg:aspect-[21/9] rounded-2xl overflow-hidden relative shadow-md snap-center shrink-0">
                 <PromoSlider promo={promo} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-8">
                   <div className="flex gap-2">
@@ -81,7 +81,7 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="w-full aspect-[16/9] md:aspect-[21/9] lg:aspect-[3/1] rounded-2xl overflow-hidden relative shadow-md">
+          <div className="w-full aspect-[4/3] md:aspect-[16/7] lg:aspect-[21/9] rounded-2xl overflow-hidden relative shadow-md">
             <img src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?q=80&w=2000&auto=format&fit=crop" alt="Banner" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-900/60 to-transparent flex flex-col justify-end p-6 md:p-8">
               <h2 className="text-white font-serif text-3xl md:text-5xl font-bold mb-2">Sweet Bakery</h2>
