@@ -1039,6 +1039,9 @@ export default function Admin() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
       {/* Cropper Modal */}
       {cropQueue.length > 0 && (
         <CropperModal 
