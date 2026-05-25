@@ -234,15 +234,29 @@ export default function Admin() {
   const handleAddPromo = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    const imageFile = fd.get('imageFile');
-    let imageUrl = '';
-    if (imageFile && imageFile.name) imageUrl = await uploadImageFile(imageFile);
+    
+    const imageFiles = fd.getAll('imageFiles');
+    const uploadedImages = [];
+
+    const singleImageFile = fd.get('imageFile');
+    if (singleImageFile && singleImageFile.name) {
+      const singleUrl = await uploadImageFile(singleImageFile);
+      if (singleUrl) uploadedImages.push(singleUrl);
+    }
+
+    for (const file of imageFiles) {
+      if (file && file.name) {
+        const url = await uploadImageFile(file);
+        if (url) uploadedImages.push(url);
+      }
+    }
 
     try {
       await axios.post(`${BACKEND_URL}/admin/promos`, {
         title: fd.get('title'),
         content: fd.get('content'),
-        image: imageUrl,
+        image: uploadedImages[0] || '',
+        images: uploadedImages,
         code: (fd.get('code') || '').toUpperCase(),
         postType: fd.get('postType') || 'NEWS',
         discountType: fd.get('discountType') || 'NONE',
@@ -268,18 +282,32 @@ export default function Admin() {
   const handleUpdatePromo = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    const imageFile = fd.get('imageFile');
-    let imageUrl = editingPromo.image;
-    if (imageFile && imageFile.name) {
-      const url = await uploadImageFile(imageFile);
-      if (url) imageUrl = url;
+    const imageFiles = fd.getAll('imageFiles');
+    
+    let uploadedImages = [...(editingPromo.images || [])];
+    if (uploadedImages.length === 0 && editingPromo.image) {
+      uploadedImages.push(editingPromo.image);
+    }
+
+    const singleImageFile = fd.get('imageFile');
+    if (singleImageFile && singleImageFile.name) {
+      const singleUrl = await uploadImageFile(singleImageFile);
+      if (singleUrl) uploadedImages.push(singleUrl);
+    }
+
+    for (const file of imageFiles) {
+      if (file && file.name) {
+        const url = await uploadImageFile(file);
+        if (url) uploadedImages.push(url);
+      }
     }
 
     try {
       await axios.put(`${BACKEND_URL}/admin/promos/${editingPromo._id}`, {
         title: fd.get('title'),
         content: fd.get('content'),
-        image: imageUrl,
+        image: uploadedImages[0] || '',
+        images: uploadedImages,
         code: fd.get('code') !== null ? fd.get('code').toUpperCase() : editingPromo.code,
         postType: fd.get('postType') || editingPromo.postType,
         discountType: fd.get('discountType') || editingPromo.discountType,
@@ -483,8 +511,8 @@ export default function Admin() {
                   <textarea name="content" rows="2" placeholder="Nội dung chi tiết (Tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
                   
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 mb-1">Hình ảnh đính kèm (Tùy chọn)</label>
-                    <input name="imageFile" type="file" accept="image/*" className="w-full text-sm" />
+                    <label className="block text-xs font-bold text-stone-500 mb-1">Hình ảnh đính kèm (Tùy chọn, chọn nhiều ảnh)</label>
+                    <input name="imageFiles" type="file" multiple accept="image/*" className="w-full text-sm" />
                   </div>
 
                   <div className="flex justify-end pt-2">
@@ -495,11 +523,16 @@ export default function Admin() {
                 <div className="space-y-3">
                   {promos.filter(p => p.postType !== 'VOUCHER').map(promo => (
                     <div key={promo._id} className="p-4 rounded-xl border border-stone-100 flex gap-4 items-center">
-                      {promo.image && (
+                      {(promo.images && promo.images.length > 0) ? (
+                        <div className="w-16 h-16 bg-stone-100 rounded-lg overflow-hidden shrink-0 relative">
+                          <img src={promo.images[0]} alt="Promo" className="w-full h-full object-cover" />
+                          {promo.images.length > 1 && <span className="absolute bottom-0 right-0 bg-black/60 text-white text-[10px] px-1 rounded-tl">+{promo.images.length - 1}</span>}
+                        </div>
+                      ) : promo.image ? (
                         <div className="w-16 h-16 bg-stone-100 rounded-lg overflow-hidden shrink-0">
                           <img src={promo.image} alt="Promo" className="w-full h-full object-cover" />
                         </div>
-                      )}
+                      ) : null}
                       <div className="flex-1">
                         <div className="font-bold text-brand-900">{promo.title}</div>
                         <div className="text-sm text-stone-500 line-clamp-1">{promo.content}</div>
