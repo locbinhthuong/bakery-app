@@ -49,8 +49,9 @@ export default function Home() {
   // Get products marked as best sellers
   const bestSellers = products.filter(p => p.isBestSeller);
   
-  // Get news and ads
-  const newsPromos = (promos || []).filter(p => p.postType !== 'VOUCHER');
+  // Get ads and news
+  const adsPromos = (promos || []).filter(p => p.postType === 'ADS');
+  const newsAndEvents = (promos || []).filter(p => p.postType === 'NEWS' || p.postType === 'EVENT');
 
   return (
     <div className="pb-20 md:pt-28">
@@ -61,18 +62,16 @@ export default function Home() {
         </h1>
       </div>
 
-      {/* Dynamic News & Ads Slider */}
+      {/* Dynamic Ads Slider */}
       <div className="px-4 mb-4">
-        {newsPromos.length > 0 ? (
+        {adsPromos.length > 0 ? (
           <div className="flex overflow-x-auto gap-4 snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
-            {newsPromos.map(promo => (
+            {adsPromos.map(promo => (
               <div key={promo._id} className="min-w-full w-full aspect-[4/3] md:aspect-[16/7] lg:aspect-[21/9] rounded-2xl overflow-hidden relative shadow-md snap-center shrink-0">
                 <PromoSlider promo={promo} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-8">
                   <div className="flex gap-2">
-                    {promo.postType === 'ADS' && <span className="text-[10px] md:text-xs font-bold bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Quảng Cáo</span>}
-                    {promo.postType === 'EVENT' && <span className="text-[10px] md:text-xs font-bold bg-purple-500 text-white px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Sự Kiện</span>}
-                    {promo.postType === 'NEWS' && <span className="text-[10px] md:text-xs font-bold bg-blue-500 text-white px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Tin Tức</span>}
+                    <span className="text-[10px] md:text-xs font-bold bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Quảng Cáo</span>
                   </div>
                   {promo.title && <h2 className="text-white font-serif text-2xl md:text-4xl font-bold mb-2 leading-tight drop-shadow-md">{promo.title}</h2>}
                   {promo.content && <p className="text-stone-100 text-sm md:text-base font-medium line-clamp-2 md:line-clamp-3 drop-shadow-md max-w-3xl">{promo.content}</p>}
@@ -148,6 +147,32 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* News and Events Section */}
+      {newsAndEvents.length > 0 && (
+        <div className="px-4 mb-8">
+          <h3 className="text-xl font-serif font-bold text-stone-900 mb-4 flex items-center gap-2">
+            Tin tức & Sự kiện
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {newsAndEvents.map(promo => (
+              <div key={promo._id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-brand-100 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="w-full aspect-[16/9] relative bg-stone-100 shrink-0">
+                  <PromoSlider promo={promo} />
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <div className="flex gap-2 mb-2">
+                    {promo.postType === 'EVENT' && <span className="text-[10px] font-bold bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase shadow-sm">Sự Kiện</span>}
+                    {promo.postType === 'NEWS' && <span className="text-[10px] font-bold bg-blue-500 text-white px-2 py-0.5 rounded-full uppercase shadow-sm">Tin Tức</span>}
+                  </div>
+                  {promo.title && <h4 className="font-bold text-stone-900 text-lg mb-2 leading-tight">{promo.title}</h4>}
+                  {promo.content && <p className="text-stone-600 text-sm line-clamp-3">{promo.content}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
