@@ -42,11 +42,25 @@ export default function CropperModal({ imageUrl, onCropComplete, onCancel }) {
             onCropComplete={onCropCompleteInternal}
           />
         </div>
-        <div className="p-4 border-t flex justify-between items-center bg-stone-50">
-          <div className="text-sm font-medium text-stone-500">Kéo và thu phóng để chọn vùng ảnh</div>
-          <div className="flex gap-2">
-            <button onClick={onCancel} className="px-4 py-2 bg-stone-200 font-bold rounded-lg hover:bg-stone-300">Huỷ bỏ</button>
-            <button onClick={handleConfirm} className="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Cắt ảnh</button>
+        <div className="p-4 border-t bg-white">
+          <div className="flex items-center gap-4 mb-4">
+            <span className="text-sm font-bold text-stone-600 whitespace-nowrap">Thu phóng</span>
+            <input 
+              type="range"
+              value={zoom}
+              min={1}
+              max={3}
+              step={0.1}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="text-xs font-medium text-stone-500">Kéo hình để di chuyển vùng cắt</div>
+            <div className="flex gap-2">
+              <button onClick={onCancel} className="px-4 py-2 bg-stone-200 font-bold rounded-lg hover:bg-stone-300">Huỷ bỏ</button>
+              <button onClick={handleConfirm} className="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Cắt ảnh</button>
+            </div>
           </div>
         </div>
       </div>
