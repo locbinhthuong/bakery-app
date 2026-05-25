@@ -1,27 +1,60 @@
-import React, { useState, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
-import getCroppedImg from '../utils/cropImage';
+import React, { useState, useRef } from 'react';
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { X } from 'lucide-react';
 
-export default function CropperModal({ imageUrl, onCropComplete, onCancel }) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: '%',
+        width: 90,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight,
+    ),
+    mediaWidth,
+    mediaHeight,
+  )
+}
 
-  const onCropChange = (crop) => setCrop(crop);
-  const onZoomChange = (zoom) => setZoom(zoom);
-  const onCropCompleteInternal = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+export default function CropperModal({ imageUrl, onCropComplete, onCancel }) {
+  const [crop, setCrop] = useState();
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const imgRef = useRef(null);
+
+  function onImageLoad(e) {
+    const { width, height } = e.currentTarget;
+    setCrop(centerAspectCrop(width, height, 16 / 9));
+  }
 
   const handleConfirm = async () => {
-    try {
-      const croppedImage = await getCroppedImg(imageUrl, croppedAreaPixels);
-      onCropComplete(croppedImage);
-    } catch (e) {
-      console.error(e);
-      onCancel();
+    if (!completedCrop || !imgRef.current) {
+        onCancel();
+        return;
     }
+    const canvas = document.createElement('canvas');
+    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.drawImage(
+      imgRef.current,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+    );
+    
+    const base64Image = canvas.toDataURL('image/jpeg');
+    onCropComplete(base64Image);
   };
 
   return (
@@ -31,32 +64,19 @@ export default function CropperModal({ imageUrl, onCropComplete, onCancel }) {
           <h3 className="text-lg font-bold">Cắt ảnh (Crop)</h3>
           <button onClick={onCancel} className="w-8 h-8 flex justify-center items-center rounded-full hover:bg-stone-100"><X size={20}/></button>
         </div>
-        <div className="relative w-full h-[60vh] bg-stone-900">
-          <Cropper
-            image={imageUrl}
+        <div className="relative w-full h-[60vh] bg-stone-900 flex justify-center items-center overflow-auto p-4">
+          <ReactCrop
             crop={crop}
-            zoom={zoom}
+            onChange={(_, percentCrop) => setCrop(percentCrop)}
+            onComplete={(c) => setCompletedCrop(c)}
             aspect={16 / 9}
-            onCropChange={onCropChange}
-            onZoomChange={onZoomChange}
-            onCropComplete={onCropCompleteInternal}
-          />
+          >
+            <img ref={imgRef} src={imageUrl} onLoad={onImageLoad} style={{ maxHeight: '50vh' }} />
+          </ReactCrop>
         </div>
         <div className="p-4 border-t bg-white">
-          <div className="flex items-center gap-4 mb-4">
-            <span className="text-sm font-bold text-stone-600 whitespace-nowrap">Thu phóng</span>
-            <input 
-              type="range"
-              value={zoom}
-              min={1}
-              max={3}
-              step={0.1}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
-            />
-          </div>
           <div className="flex justify-between items-center">
-            <div className="text-xs font-medium text-stone-500">Kéo hình để di chuyển vùng cắt</div>
+            <div className="text-xs font-medium text-stone-500">Kéo các góc sáng để thu phóng hoặc di chuyển vùng cắt</div>
             <div className="flex gap-2">
               <button onClick={onCancel} className="px-4 py-2 bg-stone-200 font-bold rounded-lg hover:bg-stone-300">Huỷ bỏ</button>
               <button onClick={handleConfirm} className="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Cắt ảnh</button>
