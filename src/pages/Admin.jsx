@@ -114,7 +114,7 @@ export default function Admin() {
       reader.readAsDataURL(file);
       reader.onload = async () => {
         try {
-          const res = await axios.post(`${BACKEND_URL}/admin/upload`, { image: reader.result });
+          const res = await axios.post(`${BACKEND_URL}/upload`, { image: reader.result });
           resolve(res.data.url.startsWith('http') ? res.data.url : BACKEND_URL.replace('/api/shop', '') + res.data.url);
         } catch (err) {
           console.error(err);
@@ -478,9 +478,9 @@ export default function Admin() {
                       <option value="NEWS">Tin tức (News)</option>
                       <option value="EVENT">Sự kiện (Event)</option>
                     </select>
-                    <input name="title" type="text" placeholder="Tiêu đề bài viết" required className="col-span-2 w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
+                    <input name="title" type="text" placeholder="Tiêu đề bài viết (Tuỳ chọn)" className="col-span-2 w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none" />
                   </div>
-                  <textarea name="content" rows="2" placeholder="Nội dung chi tiết" required className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
+                  <textarea name="content" rows="2" placeholder="Nội dung chi tiết (Tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
                   
                   <div>
                     <label className="block text-xs font-bold text-stone-500 mb-1">Hình ảnh đính kèm (Tùy chọn)</label>
