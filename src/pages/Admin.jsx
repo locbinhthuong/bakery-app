@@ -511,7 +511,8 @@ export default function Admin() {
                   <textarea name="content" rows="2" placeholder="Nội dung chi tiết (Tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
                   
                   <div>
-                    <label className="block text-xs font-bold text-stone-500 mb-1">Hình ảnh đính kèm (Tùy chọn, chọn nhiều ảnh)</label>
+                    <label className="block text-xs font-bold text-stone-500 mb-1">Hình ảnh đính kèm (Tùy chọn, có thể chọn nhiều ảnh)</label>
+                    <p className="text-[11px] text-stone-400 mb-2 italic">Khuyên dùng ảnh phong cảnh (tỉ lệ ngang 21:9 hoặc 16:9) để hiển thị đẹp nhất trên cả Web và Mobile.</p>
                     <input name="imageFiles" type="file" multiple accept="image/*" className="w-full text-sm" />
                   </div>
 
