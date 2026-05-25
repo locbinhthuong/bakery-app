@@ -51,7 +51,8 @@ export default function Home() {
   
   // Get ads and news
   const adsPromos = (promos || []).filter(p => p.postType === 'ADS');
-  const newsAndEvents = (promos || []).filter(p => p.postType === 'NEWS' || p.postType === 'EVENT');
+  const eventsPromos = (promos || []).filter(p => p.postType === 'EVENT');
+  const newsPromos = (promos || []).filter(p => p.postType === 'NEWS');
 
   return (
     <div className="pb-20 md:pt-28">
@@ -136,22 +137,46 @@ export default function Home() {
         </div>
       </div>
 
-      {/* News and Events Section */}
-      {newsAndEvents.length > 0 && (
+      {/* Events Section */}
+      {eventsPromos.length > 0 && (
         <div className="px-4 mb-8">
           <h3 className="text-xl font-serif font-bold text-stone-900 mb-4 flex items-center gap-2">
-            Tin tức & Sự kiện
+            Sự kiện
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {newsAndEvents.map(promo => (
+            {eventsPromos.map(promo => (
               <div key={promo._id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-brand-100 flex flex-col h-full hover:shadow-md transition-shadow">
                 <div className="w-full aspect-[16/9] relative bg-stone-100 shrink-0">
                   <PromoSlider promo={promo} />
                 </div>
                 <div className="p-4 flex flex-col flex-1">
                   <div className="flex gap-2 mb-2">
-                    {promo.postType === 'EVENT' && <span className="text-[10px] font-bold bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase shadow-sm">Sự Kiện</span>}
-                    {promo.postType === 'NEWS' && <span className="text-[10px] font-bold bg-blue-500 text-white px-2 py-0.5 rounded-full uppercase shadow-sm">Tin Tức</span>}
+                    <span className="text-[10px] font-bold bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase shadow-sm">Sự Kiện</span>
+                  </div>
+                  {promo.title && <h4 className="font-bold text-stone-900 text-lg mb-2 leading-tight">{promo.title}</h4>}
+                  {promo.content && <p className="text-stone-600 text-sm line-clamp-3">{promo.content}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* News Section */}
+      {newsPromos.length > 0 && (
+        <div className="px-4 mb-8">
+          <h3 className="text-xl font-serif font-bold text-stone-900 mb-4 flex items-center gap-2">
+            Tin tức
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {newsPromos.map(promo => (
+              <div key={promo._id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-brand-100 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div className="w-full aspect-[16/9] relative bg-stone-100 shrink-0">
+                  <PromoSlider promo={promo} />
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <div className="flex gap-2 mb-2">
+                    <span className="text-[10px] font-bold bg-blue-500 text-white px-2 py-0.5 rounded-full uppercase shadow-sm">Tin Tức</span>
                   </div>
                   {promo.title && <h4 className="font-bold text-stone-900 text-lg mb-2 leading-tight">{promo.title}</h4>}
                   {promo.content && <p className="text-stone-600 text-sm line-clamp-3">{promo.content}</p>}
