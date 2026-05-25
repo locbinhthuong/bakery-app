@@ -24,14 +24,12 @@ function PromoSlider({ promo }) {
   }
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-stone-100">
+    <div className="relative w-full h-full overflow-hidden bg-stone-900 rounded-2xl">
       {images.map((img, i) => (
-        <img 
-          key={i} 
-          src={img} 
-          alt={`${promo.title} ${i}`} 
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === currentIndex ? 'opacity-100' : 'opacity-0'}`} 
-        />
+        <div key={i} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${i === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
+          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60 blur-xl scale-110" />
+          <img src={img} alt={`${promo.title} ${i}`} className="relative w-full h-full object-contain drop-shadow-2xl" />
+        </div>
       ))}
       {/* dots indicator */}
       {images.length > 1 && (
@@ -55,9 +53,9 @@ export default function Home() {
   const newsPromos = (promos || []).filter(p => p.postType !== 'VOUCHER');
 
   return (
-    <div className="pb-20">
-      {/* Top Header Section */}
-      <div className="pt-10 px-4 pb-4">
+    <div className="pb-20 md:pt-28">
+      {/* Top Header Section (Mobile Only) */}
+      <div className="pt-10 px-4 pb-4 md:hidden">
         <h1 className="text-2xl font-serif font-bold text-stone-900 text-center tracking-wide">
           Le Petit Bakery
         </h1>

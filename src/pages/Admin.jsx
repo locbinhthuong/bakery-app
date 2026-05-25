@@ -424,7 +424,7 @@ export default function Admin() {
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3 text-white">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="Sweet Bakery" className="w-full h-full object-contain" />
+              <img src="/logo.jpg" alt="Sweet Bakery" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-serif font-bold tracking-wide">Admin</span>
           </div>
