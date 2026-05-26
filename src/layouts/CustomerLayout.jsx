@@ -290,8 +290,8 @@ export default function CustomerLayout() {
         <div className="max-w-7xl mx-auto px-12 flex justify-between items-center w-full">
           <div className="flex items-center gap-12">
             <Link to="/" className="flex items-center gap-2 group">
-              <img src="/logo.jpg" alt="Sweet Bakery" className="w-10 h-10 object-cover rounded-full shadow-sm transition-transform duration-500 group-hover:rotate-12 bg-white" />
-              <span className="text-2xl font-serif font-bold tracking-tight text-brand-800">Sweet Bakery</span>
+              <img src="/logo_donut.jpg" alt="MABAE Donut" className="w-10 h-10 object-cover rounded-full shadow-sm transition-transform duration-500 group-hover:rotate-12 bg-white" />
+              <span className="text-2xl font-serif font-bold tracking-tight text-brand-800">MABAE Donut</span>
             </Link>
             <div className="flex items-center gap-8 text-sm font-bold tracking-wide uppercase">
               <Link to="/" className={`transition-colors ${location.pathname === '/' ? 'text-brand-600' : 'text-brand-800 hover:text-brand-600'}`}>Trang chủ</Link>
@@ -363,7 +363,7 @@ export default function CustomerLayout() {
                 <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center text-white shadow-md">
                   <CakeSlice size={24} />
                 </div>
-                <span className="text-3xl font-serif font-bold tracking-tight text-stone-900">Sweet Bakery</span>
+                <span className="text-3xl font-serif font-bold tracking-tight text-stone-900">MABAE Donut</span>
               </div>
               <p className="text-stone-600 leading-relaxed max-w-sm mb-8 mt-6">
                 Mang đến hương vị ngọt ngào và lãng mạn từ những mẻ bánh Pháp thủ công, được nướng bằng cả trái tim.
@@ -389,7 +389,7 @@ export default function CustomerLayout() {
             </div>
           </div>
           <div className="pt-8 border-t border-brand-200 text-center text-sm text-stone-500 font-medium">
-            © 2026 Sweet Bakery. All rights reserved.
+            © 2026 MABAE Donut. All rights reserved.
           </div>
         </div>
       </footer>

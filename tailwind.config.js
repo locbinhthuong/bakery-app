@@ -7,18 +7,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Soft Bakery (Dusty Pink / Nude Pink) - Elegant and not garish
+        // Vibrant Pink (MABAE Donut Theme)
         brand: {
-          50: '#fdf8f9', // Rất nhạt
-          100: '#f9eced', // Nền khối/card
-          200: '#f1d6d9', // Border
-          300: '#e5b6bc', 
-          400: '#d58d97',
-          500: '#c56b77', // Nút bấm chính (Hồng đất nhẹ)
-          600: '#ab4f5d', // Nút hover
-          700: '#8e3e49',
-          800: '#76353f',
-          900: '#643038', // Tiêu đề chính
+          50: '#fdf2f8',  // Nền nhạt
+          100: '#fce7f3', // Card background
+          200: '#fbcfe8', // Border
+          300: '#f9a8d4', 
+          400: '#f472b6',
+          500: '#ec4899', // Main Pink
+          600: '#db2777', // Hover
+          700: '#be185d',
+          800: '#9d174d',
+          900: '#831843', // Text chính
         },
         surface: {
           light: '#ffffff',
