@@ -71,9 +71,6 @@ function MapUpdater({ center }) {
   }, [center, map]);
   return null;
 }
-import axios from 'axios';
-import { Clock, CheckCircle2, Store, Star, UserCircle, MapPin, Info, LogOut, ChevronRight, Eye, EyeOff, X, FileText, Shield } from 'lucide-react';
-
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
 export default function Profile() {
