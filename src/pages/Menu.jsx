@@ -8,6 +8,7 @@ export default function Menu() {
   const { products, categories: dbCategories, addToCart } = useOutletContext();
   const [activeTab, setActiveTab] = useState('');
   const [myOrders, setMyOrders] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     // Fetch orders if phone exists
@@ -207,8 +208,12 @@ export default function Menu() {
             
             <div className="space-y-3">
               {productGroups[cat].map(product => (
-                <div key={product._id} className="bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 flex gap-4 relative overflow-hidden">
-                  <div className="absolute top-2 left-0 bg-brand-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-r">MỚI</div>
+                <div 
+                  key={product._id} 
+                  className="bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 flex gap-4 relative overflow-hidden cursor-pointer"
+                  onClick={() => setSelectedProduct(product)}
+                >
+                  <div className="absolute top-3 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-10">MỚI</div>
                   
                   <div className="w-24 h-24 bg-brand-50 rounded-xl overflow-hidden shrink-0 relative group">
                     <ProductImageSlider images={product.images} fallbackImage={product.image} productName={product.name} />
@@ -220,13 +225,13 @@ export default function Menu() {
                       <p className="text-xs text-stone-500 line-clamp-1">{product.description}</p>
                     </div>
                     <div className="text-brand-600 font-bold text-sm">
-                      {product.price.toLocaleString('vi-VN')}
+                      {product.price.toLocaleString('vi-VN')} ₫
                     </div>
                   </div>
 
                   <button 
                     onClick={(e) => handleAddToCart(e, product)}
-                    className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-xs shadow-sm hover:bg-brand-500 hover:text-white transition-colors"
+                    className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-xs shadow-sm hover:bg-brand-500 hover:text-white transition-colors z-20"
                   >
                     <Plus size={14} strokeWidth={3} className="mr-1" /> Thêm
                   </button>
@@ -241,6 +246,49 @@ export default function Menu() {
           </div>
         )}
       </div>
+
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center">
+          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProduct(null)}></div>
+          <div className="relative w-full md:max-w-md bg-white rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom md:zoom-in-95 duration-300">
+            
+            <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md z-10 hover:bg-black/60">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+            
+            <div className="w-full aspect-square bg-stone-100 rounded-t-3xl md:rounded-t-3xl overflow-hidden shrink-0">
+              <ProductImageSlider images={selectedProduct.images} fallbackImage={selectedProduct.image} productName={selectedProduct.name} />
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <div className="flex justify-between items-start gap-4 mb-2">
+                <h2 className="text-2xl font-serif font-bold text-stone-900 leading-tight">{selectedProduct.name}</h2>
+              </div>
+              <div className="text-2xl font-bold text-brand-600 mb-4">{selectedProduct.price.toLocaleString('vi-VN')} ₫</div>
+              
+              <div className="pt-4 border-t border-stone-100">
+                <h3 className="font-bold text-stone-800 mb-2">Mô tả sản phẩm</h3>
+                <p className="text-stone-600 text-sm leading-relaxed whitespace-pre-line">
+                  {selectedProduct.description || 'Chưa có mô tả cho sản phẩm này.'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-stone-100 bg-white rounded-b-3xl shrink-0">
+              <button 
+                onClick={(e) => {
+                  handleAddToCart(e, selectedProduct);
+                  setSelectedProduct(null);
+                }}
+                className="w-full py-4 bg-brand-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-brand-700 shadow-md transition-colors"
+              >
+                <ShoppingBag size={20} /> Thêm vào giỏ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
