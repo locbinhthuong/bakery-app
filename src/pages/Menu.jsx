@@ -5,11 +5,13 @@ import axios from 'axios';
 import ProductImageSlider from '../components/ProductImageSlider';
 
 export default function Menu() {
-  const { products, categories: dbCategories, addToCart, customer } = useOutletContext();
+  const { products, categories: dbCategories, addToCart, customer, cart, setIsCheckout } = useOutletContext();
   const [activeTab, setActiveTab] = useState('');
   const [myOrders, setMyOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function Menu() {
     const groups = {};
     categoryNames.forEach(name => groups[name] = []);
     products.forEach(p => {
+      if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
       const cat = p.category || 'Khác';
       if (groups[cat]) {
         groups[cat].push(p);
@@ -57,13 +60,13 @@ export default function Menu() {
         // If product has a category not in DB, put it in 'Khác' or ignore. Let's put in 'Khác'.
         if (!groups['Khác']) {
           groups['Khác'] = [];
-          categoryNames.push('Khác');
+          if (!categoryNames.includes('Khác')) categoryNames.push('Khác');
         }
         groups['Khác'].push(p);
       }
     });
     return groups;
-  }, [products, categoryNames]);
+  }, [products, categoryNames, searchQuery]);
   if (categoryNames.length > 0 && !activeTab) {
     setActiveTab(categoryNames[0]);
   }
@@ -153,56 +156,95 @@ export default function Menu() {
     <div className="pb-24 bg-brand-50 min-h-screen">
       {/* Header */}
       <div className="sticky top-0 bg-brand-50 z-30 pt-12 pb-2 px-4 shadow-sm border-b border-brand-100">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-serif font-bold text-stone-900">Thực đơn</h1>
-          <div className="flex items-center gap-3 relative">
-            <button 
-              onClick={() => {
-                if (!customer) {
-                  alert('Vui lòng đăng nhập để xem thông báo');
-                  navigate('/profile');
-                  return;
-                }
-                setShowNotifications(!showNotifications);
-              }}
-              className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative"
-            >
-              <Bell size={20} />
-              {myOrders.filter(o => o.status !== 'CANCELLED').length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
-            </button>
-            <button className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-stone-700">
-              <Search size={20} />
-            </button>
-            
-            {/* Notification Dropdown */}
-            {showNotifications && (
-              <div className="absolute top-12 right-0 w-72 bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden z-50">
-                <div className="p-3 border-b border-stone-100 bg-brand-50">
-                  <h3 className="font-bold text-stone-900 text-sm">Thông báo đơn hàng</h3>
-                </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {myOrders.length === 0 ? (
-                    <div className="p-4 text-center text-stone-500 text-xs">Chưa có thông báo nào</div>
-                  ) : (
-                    myOrders.map(order => (
-                      <div key={order._id} className="p-3 border-b border-stone-50 hover:bg-stone-50 transition-colors">
-                        <div className="flex items-start gap-2">
-                          {order.status === 'PENDING' ? <Clock size={16} className="text-brand-500 shrink-0 mt-0.5" /> : <CheckCircle size={16} className="text-green-500 shrink-0 mt-0.5" />}
-                          <div>
-                            <p className="text-xs font-bold text-stone-900 mb-0.5">
-                              Đơn hàng {order.totalAmount.toLocaleString('vi-VN')}₫
-                            </p>
-                            <p className="text-[11px] text-stone-500">
-                              {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 
-                               order.status === 'CONFIRMED' ? 'Tiệm đã xác nhận, đang chuẩn bị' :
-                               order.status === 'DELIVERING' ? 'Đang trên đường giao đến bạn' :
-                               order.status === 'COMPLETED' ? 'Đã giao thành công' : 'Đã hủy'}
-                            </p>
-                            <p className="text-[9px] text-stone-400 mt-1">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+        <div className="flex justify-between items-center mb-4 min-h-[40px]">
+          {isSearching ? (
+            <div className="flex-1 flex items-center gap-2">
+              <input 
+                type="text" 
+                autoFocus
+                placeholder="Tìm kiếm bánh..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="flex-1 px-4 py-2 bg-white rounded-full border border-brand-200 outline-none focus:border-brand-500 shadow-inner text-sm"
+              />
+              <button onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="w-10 h-10 flex items-center justify-center text-stone-500 shrink-0">
+                Đóng
+              </button>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-serif font-bold text-stone-900">Thực đơn</h1>
+              <div className="flex items-center gap-2 relative">
+                <button 
+                  onClick={() => {
+                    if (!customer) {
+                      alert('Vui lòng đăng nhập để xem thông báo');
+                      navigate('/profile');
+                      return;
+                    }
+                    setShowNotifications(!showNotifications);
+                  }}
+                  className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative"
+                >
+                  <Bell size={20} />
+                  {myOrders.filter(o => o.status !== 'CANCELLED').length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
+                </button>
+                <button onClick={() => setIsSearching(true)} className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-stone-700">
+                  <Search size={20} />
+                </button>
+                <button 
+                  id="mobile-cart-icon"
+                  onClick={() => {
+                    if (!customer) {
+                      alert('Vui lòng đăng nhập để đặt hàng');
+                      navigate('/profile');
+                      return;
+                    }
+                    setIsCheckout(true);
+                  }} 
+                  className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white relative shadow-sm"
+                >
+                  <ShoppingBag size={20} />
+                  {cart && cart.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-brand-600 font-bold text-[10px] rounded-full flex items-center justify-center border border-brand-600 shadow-sm">{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>}
+                </button>
+
+                {/* Notification Dropdown */}
+                {showNotifications && (
+                  <div className="absolute top-12 right-0 w-72 bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden z-50">
+                    <div className="p-3 border-b border-stone-100 bg-brand-50">
+                      <h3 className="font-bold text-stone-900 text-sm">Thông báo đơn hàng</h3>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto">
+                      {myOrders.length === 0 ? (
+                        <div className="p-4 text-center text-stone-500 text-xs">Chưa có thông báo nào</div>
+                      ) : (
+                        myOrders.map(order => (
+                          <div key={order._id} className="p-3 border-b border-stone-50 hover:bg-stone-50 transition-colors">
+                            <div className="flex items-start gap-2">
+                              {order.status === 'PENDING' ? <Clock size={16} className="text-brand-500 shrink-0 mt-0.5" /> : <CheckCircle size={16} className="text-green-500 shrink-0 mt-0.5" />}
+                              <div>
+                                <p className="text-xs font-bold text-stone-900 mb-0.5">
+                                  Đơn hàng {order.totalAmount.toLocaleString('vi-VN')}₫
+                                </p>
+                                <p className="text-[11px] text-stone-500">
+                                  {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 
+                                   order.status === 'CONFIRMED' ? 'Tiệm đã xác nhận, đang chuẩn bị' :
+                                   order.status === 'DELIVERING' ? 'Đang trên đường giao đến bạn' :
+                                   order.status === 'COMPLETED' ? 'Đã giao thành công' : 'Đã hủy'}
+                                </p>
+                                <p className="text-[10px] text-stone-400 mt-1">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>             ))
                   )}
                 </div>
               </div>

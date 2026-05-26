@@ -390,27 +390,6 @@ export default function CustomerLayout() {
         </div>
       </nav>
 
-      {/* Floating Cart Button for Mobile (when not in checkout) */}
-      {!isCheckout && cart.length > 0 && (
-        <button 
-          onClick={() => {
-            if (!customer) {
-              alert('Vui lòng đăng nhập để đặt hàng');
-              navigate('/profile');
-              return;
-            }
-            setIsCheckout(true);
-          }}
-          className="md:hidden fixed bottom-28 right-4 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center z-40 hover:bg-brand-700 transition-colors"
-        >
-          <div className="relative transition-transform duration-200" id="mobile-cart-icon">
-            <ShoppingBag size={24} />
-            <span className="absolute -top-2 -right-2 w-5 h-5 bg-white text-brand-600 text-[11px] font-bold rounded-full flex items-center justify-center shadow-sm">
-              {cart.reduce((sum, item) => sum + item.quantity, 0)}
-            </span>
-          </div>
-        </button>
-      )}
 
       {/* Main Content Area */}
       <div className="min-h-[70vh]">
