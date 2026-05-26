@@ -180,11 +180,25 @@ export default function CustomerLayout() {
     });
   };
 
+  const resetCheckoutForm = () => {
+    setAddressOption('SAVED');
+    setCustomerLocation(null);
+    setDeliveryMethod('DELIVERY');
+    if (customer) {
+      setFormData({ name: customer.name || '', phone: customer.phone || '', address: customer.address || '', note: '' });
+    } else {
+      setFormData({ name: '', phone: '', address: '', note: '' });
+    }
+  };
+
   const removeFromCart = (productId) => {
     setCart(prev => {
       const newCart = prev.filter(item => item._id !== productId);
       localStorage.setItem('bakery_cart', JSON.stringify(newCart));
-      if (newCart.length === 0) setIsCheckout(false);
+      if (newCart.length === 0) {
+        setIsCheckout(false);
+        resetCheckoutForm();
+      }
       return newCart;
     });
   };
@@ -201,7 +215,10 @@ export default function CustomerLayout() {
     setCart(prev => {
       const newCart = prev.map(item => item._id === productId ? { ...item, quantity: item.quantity - 1 } : item).filter(item => item.quantity > 0);
       localStorage.setItem('bakery_cart', JSON.stringify(newCart));
-      if (newCart.length === 0) setIsCheckout(false);
+      if (newCart.length === 0) {
+        setIsCheckout(false);
+        resetCheckoutForm();
+      }
       return newCart;
     });
   };
