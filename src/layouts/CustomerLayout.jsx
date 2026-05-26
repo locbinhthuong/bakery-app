@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { ShoppingBag, CakeSlice, MapPin, Phone, ArrowRight, Home as HomeIcon, Coffee, Percent, LayoutGrid, QrCode, X, ChevronRight, Ticket, Navigation, Search } from 'lucide-react';
+import { ShoppingBag, CakeSlice, MapPin, Phone, ArrowRight, Home as HomeIcon, Coffee, Percent, LayoutGrid, QrCode, X, ChevronRight, Ticket, Navigation, Search, Receipt } from 'lucide-react';
 import axios from 'axios';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -632,11 +632,11 @@ export default function CustomerLayout() {
           <span className="text-[10px] font-bold">Đặt hàng</span>
         </Link>
         
-        {/* Floating Middle Button (QR Code mock) */}
+        {/* Floating Middle Button (Orders Activity) */}
         <div className="relative w-[20%] flex justify-center">
-          <button className="absolute bottom-1 w-14 h-14 bg-brand-900 text-brand-100 rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(83,58,41,0.4)] border-4 border-white transform hover:scale-105 transition-transform">
-            <QrCode size={26} strokeWidth={2} />
-          </button>
+          <Link to="/orders" className="absolute bottom-1 w-14 h-14 bg-brand-900 text-brand-100 rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(83,58,41,0.4)] border-4 border-white transform hover:scale-105 transition-transform">
+            <Receipt size={24} strokeWidth={2} />
+          </Link>
         </div>
 
         <Link to="/promos" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/promos' ? 'text-brand-900' : 'text-brand-800'}`}>
