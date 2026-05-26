@@ -213,7 +213,7 @@ export default function Menu() {
                   className="bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 flex gap-4 relative overflow-hidden cursor-pointer"
                   onClick={() => setSelectedProduct(product)}
                 >
-                  <div className="absolute top-3 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-10">MỚI</div>
+                  <div className="absolute top-3 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-20">MỚI</div>
                   
                   <div className="w-24 h-24 bg-brand-50 rounded-xl overflow-hidden shrink-0 relative group">
                     <ProductImageSlider images={product.images} fallbackImage={product.image} productName={product.name} />

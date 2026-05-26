@@ -119,7 +119,7 @@ export default function Home() {
           {bestSellers.map(product => (
             <div key={product._id} className="min-w-[160px] max-w-[160px] snap-start">
               <div className="w-full aspect-[4/5] bg-white rounded-2xl mb-3 overflow-hidden relative shadow-sm border border-brand-100/50">
-                <div className="absolute top-2 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-10 pointer-events-none">MỚI</div>
+                <div className="absolute top-2 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-20 pointer-events-none">MỚI</div>
                 <ProductImageSlider images={product.images} fallbackImage={product.image} productName={product.name} />
                 <button 
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart(product); }}
