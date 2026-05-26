@@ -693,7 +693,10 @@ export default function Admin() {
                     {promos.filter(p => p.postType === 'VOUCHER').map(promo => (
                       <div key={promo._id} className="p-4 rounded-xl border border-brand-200 bg-brand-50 flex gap-4 items-center">
                         <div className="flex-1">
-                          <div className="font-bold text-brand-800">{promo.code} - {promo.title}</div>
+                          <div className="font-bold text-brand-800">
+                            {promo.code} - {promo.title}
+                            {promo.pointsCost > 0 && <span className="ml-2 text-xs bg-brand-500 text-white px-2 py-0.5 rounded-full">{promo.pointsCost} điểm</span>}
+                          </div>
                           <div className="text-sm text-stone-600">Giảm: {promo.discountValue}{promo.discountType==='PERCENT'?'%':'đ'} {promo.minOrderValue>0 ? `(Đơn từ ${promo.minOrderValue.toLocaleString('vi-VN')})`:''}</div>
                         </div>
                         <div className="flex gap-2">
