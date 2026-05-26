@@ -1,6 +1,7 @@
 import { useOutletContext, Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket, UserCircle } from 'lucide-react';
+import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket, UserCircle, Clock, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import ProductImageSlider from '../components/ProductImageSlider';
 
 function PromoSlider({ promo }) {
@@ -46,6 +47,31 @@ function PromoSlider({ promo }) {
 export default function Home() {
   const { products, addToCart, customer, promos, setIsCheckout, cart } = useOutletContext();
   const navigate = useNavigate();
+  const [myOrders, setMyOrders] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        if (customer && customer.phone) {
+          const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
+          const res = await axios.get(`${BACKEND_URL}/customer/orders/${customer.phone}`);
+          setMyOrders(res.data.data);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    if (customer) {
+      fetchOrders();
+      const interval = setInterval(fetchOrders, 10000);
+      return () => clearInterval(interval);
+    } else {
+      setMyOrders([]);
+    }
+  }, [customer]);
+
+  const activeOrders = myOrders.filter(o => o.status !== 'CANCELLED');
 
   // Get products marked as best sellers
   const bestSellers = products.filter(p => p.isBestSeller);
@@ -58,12 +84,12 @@ export default function Home() {
   return (
     <div className="pb-20 md:pt-28">
       {/* Top Header Section (Mobile Only) */}
-      <div className="pt-10 px-4 pb-4 md:hidden">
+      <div className="pt-10 px-4 pb-4 md:hidden relative z-50">
         {/* Row 1: Logo & Name */}
-        <div className="flex flex-col items-center justify-center gap-2 mb-6">
-          <img src="/logo_donut.jpg" alt="Logo" className="w-16 h-16 object-contain p-1 rounded-full shadow-md border-2 border-brand-100 bg-white" />
-          <h1 className="text-xl font-serif font-bold text-stone-900 text-center tracking-wide">
-            MABAE <span className="text-brand-600">- Tiệm Bánh Donut</span>
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <img src="/logo_donut.jpg" alt="Logo" className="w-12 h-12 object-contain p-0.5 rounded-full shadow-sm border border-brand-100 bg-white" />
+          <h1 className="text-xl font-serif font-bold text-stone-900 tracking-wide">
+            MABAE <span className="text-brand-600">- Tiệm Bánh</span>
           </h1>
         </div>
 
@@ -79,11 +105,56 @@ export default function Home() {
             </div>
           </Link>
           
-          <div className="flex items-center gap-3">
-            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative">
+          <div className="flex items-center gap-3 relative">
+            <button 
+              onClick={() => {
+                if (!customer) {
+                  alert('Vui lòng đăng nhập để xem thông báo');
+                  navigate('/profile');
+                  return;
+                }
+                setShowNotifications(!showNotifications);
+              }}
+              className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative"
+            >
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+              {activeOrders.length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
             </button>
+            
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <div className="absolute top-12 right-0 w-72 bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden z-50">
+                <div className="p-3 border-b border-stone-100 bg-brand-50">
+                  <h3 className="font-bold text-stone-900 text-sm">Thông báo đơn hàng</h3>
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {myOrders.length === 0 ? (
+                    <div className="p-4 text-center text-stone-500 text-xs">Chưa có thông báo nào</div>
+                  ) : (
+                    myOrders.map(order => (
+                      <div key={order._id} className="p-3 border-b border-stone-50 hover:bg-stone-50 transition-colors">
+                        <div className="flex items-start gap-2">
+                          {order.status === 'PENDING' ? <Clock size={16} className="text-brand-500 shrink-0 mt-0.5" /> : <CheckCircle size={16} className="text-green-500 shrink-0 mt-0.5" />}
+                          <div>
+                            <p className="text-xs font-bold text-stone-900 mb-0.5">
+                              Đơn hàng {order.totalAmount.toLocaleString('vi-VN')}₫
+                            </p>
+                            <p className="text-[11px] text-stone-500">
+                              {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 
+                               order.status === 'CONFIRMED' ? 'Tiệm đã xác nhận, đang chuẩn bị' :
+                               order.status === 'DELIVERING' ? 'Đang trên đường giao đến bạn' :
+                               order.status === 'COMPLETED' ? 'Đã giao thành công' : 'Đã hủy'}
+                            </p>
+                            <p className="text-[9px] text-stone-400 mt-1">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
             <button 
               onClick={() => {
                 if (!customer) {
