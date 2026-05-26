@@ -1,7 +1,7 @@
 import { useOutletContext, useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import axios from 'axios';
-import { Clock, CheckCircle2, Store, Star, UserCircle, MapPin, Info, LogOut, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { Clock, CheckCircle2, Store, Star, UserCircle, MapPin, Info, LogOut, ChevronRight, Eye, EyeOff, X, FileText, Shield } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
@@ -13,6 +13,33 @@ export default function Profile() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [authForm, setAuthForm] = useState({ phone: '', password: '', name: '' });
   const [showPassword, setShowPassword] = useState(false);
+
+  // Edit Profile States
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', phone: '', address: '' });
+
+  const handleOpenEdit = () => {
+    setEditForm({ name: customer.name || '', phone: customer.phone || '', address: customer.address || '' });
+    setShowEditModal(true);
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('bakery_token');
+      const res = await axios.put(`${BACKEND_URL}/customer/profile`, editForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        localStorage.setItem('bakery_customer', JSON.stringify(res.data.data.customer));
+        updateCustomer(res.data.data.customer);
+        setShowEditModal(false);
+        alert('Cập nhật thông tin thành công!');
+      }
+    } catch(err) {
+       alert('Lỗi cập nhật thông tin: ' + (err.response?.data?.message || err.message));
+    }
+  };
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
@@ -136,47 +163,24 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Tiện ích */}
-        <div className="mb-8">
-          <h3 className="font-bold text-stone-900 text-lg mb-4 px-1">Tiện ích</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <Link to="/orders" className="bg-white rounded-2xl p-4 flex flex-col items-start gap-3 shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
-              <Clock size={28} className="text-brand-500" strokeWidth={1.5}/>
-              <span className="font-bold text-stone-900 text-sm leading-tight">Lịch sử đặt<br/>hàng</span>
-            </Link>
-            <div className="bg-white rounded-2xl p-4 flex flex-col items-start gap-3 shadow-sm border border-stone-100">
-              <CheckCircle2 size={28} className="text-brand-500" strokeWidth={1.5}/>
-              <span className="font-bold text-stone-900 text-sm leading-tight">Lịch sử<br/>điểm</span>
-            </div>
-            <div className="bg-white rounded-2xl p-4 flex flex-col items-start gap-3 shadow-sm border border-stone-100">
-              <Store size={28} className="text-brand-500" strokeWidth={1.5}/>
-              <span className="font-bold text-stone-900 text-sm leading-tight">Cửa hàng<br/>&nbsp;</span>
-            </div>
-            <div className="bg-white rounded-2xl p-4 flex flex-col items-start gap-3 shadow-sm border border-stone-100">
-              <Star size={28} className="text-brand-500" strokeWidth={1.5}/>
-              <span className="font-bold text-stone-900 text-sm leading-tight">Đánh giá<br/>đơn hàng</span>
-            </div>
-          </div>
-        </div>
-
         {/* Tài khoản */}
-        <div className="mb-8">
+        <div className="mb-8 mt-4">
           <h3 className="font-bold text-stone-900 text-lg mb-4 px-1">Tài khoản</h3>
           <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-100/50">
-            <button className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+            <button onClick={handleOpenEdit} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
               <div className="flex items-center gap-3 text-brand-800 font-bold">
                 <UserCircle size={22} className="text-brand-600"/>
-                Thông tin cá nhân
+                Chỉnh sửa thông tin
               </div>
               <ChevronRight size={20} className="text-brand-300"/>
             </button>
-            <button className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 transition-colors">
+            <Link to="/orders" className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 transition-colors">
               <div className="flex items-center gap-3 text-brand-800 font-bold">
-                <MapPin size={22} className="text-brand-600"/>
-                Địa chỉ đã lưu
+                <Clock size={22} className="text-brand-600"/>
+                Lịch sử đặt hàng
               </div>
               <ChevronRight size={20} className="text-brand-300"/>
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -184,10 +188,24 @@ export default function Profile() {
         <div className="mb-4">
           <h3 className="font-bold text-brand-900 text-lg mb-4 px-1">Khác</h3>
           <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-100/50">
-            <button className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+            <button onClick={() => alert('Về chúng tôi đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
               <div className="flex items-center gap-3 text-brand-800 font-bold">
                 <Info size={22} className="text-brand-600"/>
                 Về chúng tôi
+              </div>
+              <ChevronRight size={20} className="text-brand-300"/>
+            </button>
+            <button onClick={() => alert('Điều khoản sử dụng đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+              <div className="flex items-center gap-3 text-brand-800 font-bold">
+                <FileText size={22} className="text-brand-600"/>
+                Điều khoản sử dụng
+              </div>
+              <ChevronRight size={20} className="text-brand-300"/>
+            </button>
+            <button onClick={() => alert('Chính sách bảo mật đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+              <div className="flex items-center gap-3 text-brand-800 font-bold">
+                <Shield size={22} className="text-brand-600"/>
+                Chính sách bảo mật
               </div>
               <ChevronRight size={20} className="text-brand-300"/>
             </button>
@@ -201,6 +219,49 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onClick={() => setShowEditModal(false)}></div>
+          <div className="relative bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-stone-900">Thông tin cá nhân</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-stone-400 hover:text-stone-600"><X size={24}/></button>
+            </div>
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-1 ml-1">Họ và tên</label>
+                <input 
+                  type="text" required 
+                  className="w-full px-4 py-3 bg-brand-50 border border-brand-200 rounded-xl outline-none font-medium focus:bg-white focus:border-brand-500 transition-colors"
+                  value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-1 ml-1">Số điện thoại</label>
+                <input 
+                  type="tel" required 
+                  className="w-full px-4 py-3 bg-brand-50 border border-brand-200 rounded-xl outline-none font-medium focus:bg-white focus:border-brand-500 transition-colors"
+                  value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-1 ml-1">Địa chỉ giao hàng mặc định</label>
+                <textarea 
+                  rows="2"
+                  className="w-full px-4 py-3 bg-brand-50 border border-brand-200 rounded-xl outline-none font-medium resize-none focus:bg-white focus:border-brand-500 transition-colors"
+                  value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})}
+                  placeholder="Nhập địa chỉ của bạn"
+                ></textarea>
+              </div>
+              <button type="submit" className="w-full py-3.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-md mt-4">
+                Lưu thay đổi
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
