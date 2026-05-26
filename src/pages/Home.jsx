@@ -89,7 +89,7 @@ export default function Home() {
         <div className="flex items-center justify-center gap-3 mb-6">
           <img src="/logo_donut.jpg" alt="Logo" className="w-12 h-12 object-contain p-0.5 rounded-full shadow-sm border border-brand-100 bg-white" />
           <h1 className="text-xl font-serif font-bold text-stone-900 tracking-wide">
-            MABAE <span className="text-brand-600">- Tiệm Bánh</span>
+            MABAE <span className="text-brand-600">- Tiệm Bánh Donut</span>
           </h1>
         </div>
 
