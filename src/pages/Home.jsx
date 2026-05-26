@@ -1,5 +1,5 @@
-import { useOutletContext, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket } from 'lucide-react';
+import { useOutletContext, Link, useNavigate } from 'react-router-dom';
+import { ShoppingBag, ChevronRight, CakeSlice, Bell, Ticket, UserCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ProductImageSlider from '../components/ProductImageSlider';
 
@@ -44,7 +44,8 @@ function PromoSlider({ promo }) {
 }
 
 export default function Home() {
-  const { products, addToCart, customer, promos } = useOutletContext();
+  const { products, addToCart, customer, promos, setIsCheckout, cart } = useOutletContext();
+  const navigate = useNavigate();
 
   // Get products marked as best sellers
   const bestSellers = products.filter(p => p.isBestSeller);
@@ -57,11 +58,52 @@ export default function Home() {
   return (
     <div className="pb-20 md:pt-28">
       {/* Top Header Section (Mobile Only) */}
-      <div className="pt-10 px-4 pb-4 md:hidden flex flex-col items-center justify-center gap-2">
-        <img src="/logo_donut.jpg" alt="Logo" className="w-16 h-16 object-contain p-1 rounded-full shadow-md border-2 border-brand-100 bg-white" />
-        <h1 className="text-xl font-serif font-bold text-stone-900 text-center tracking-wide">
-          MABAE <span className="text-brand-600">- Tiệm Bánh Donut</span>
-        </h1>
+      <div className="pt-10 px-4 pb-4 md:hidden">
+        {/* Row 1: Logo & Name */}
+        <div className="flex flex-col items-center justify-center gap-2 mb-6">
+          <img src="/logo_donut.jpg" alt="Logo" className="w-16 h-16 object-contain p-1 rounded-full shadow-md border-2 border-brand-100 bg-white" />
+          <h1 className="text-xl font-serif font-bold text-stone-900 text-center tracking-wide">
+            MABAE <span className="text-brand-600">- Tiệm Bánh Donut</span>
+          </h1>
+        </div>
+
+        {/* Row 2: User info & Actions */}
+        <div className="flex items-center justify-between">
+          <Link to="/profile" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-brand-200 rounded-full flex items-center justify-center text-brand-700 font-bold overflow-hidden shadow-sm border border-brand-100">
+              {customer?.name ? customer.name.charAt(0).toUpperCase() : <UserCircle size={24} />}
+            </div>
+            <div>
+              <p className="text-xs text-stone-500 font-medium">Xin chào,</p>
+              <p className="text-sm font-bold text-stone-900">{customer?.name || 'Khách hàng'}</p>
+            </div>
+          </Link>
+          
+          <div className="flex items-center gap-3">
+            <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative">
+              <Bell size={20} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button 
+              onClick={() => {
+                if (!customer) {
+                  alert('Vui lòng đăng nhập để xem giỏ hàng');
+                  navigate('/profile');
+                  return;
+                }
+                setIsCheckout(true);
+              }}
+              className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white shadow-sm relative"
+            >
+              <ShoppingBag size={20} />
+              {(cart && cart.length > 0) && (
+                <span className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Dynamic Ads Slider */}
