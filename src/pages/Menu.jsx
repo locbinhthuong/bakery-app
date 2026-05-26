@@ -244,12 +244,6 @@ export default function Menu() {
               </div>
             </>
           )}
-        </div>             ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
         
         {/* Category Tabs */}
