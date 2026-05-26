@@ -103,6 +103,7 @@ export default function Profile() {
 
   const handleOpenEdit = () => {
     setEditForm({ name: customer.name || '', phone: customer.phone || '', address: customer.address || '' });
+    setCustomerLocation(customer.location || null);
     setShowEditModal(true);
   };
 
@@ -110,12 +111,13 @@ export default function Profile() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('bakery_token');
-      const res = await axios.put(`${BACKEND_URL}/customer/profile`, editForm, {
+      const payload = { ...editForm, location: customerLocation };
+      const res = await axios.put(`${BACKEND_URL}/customer/profile`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        localStorage.setItem('bakery_customer', JSON.stringify(res.data.data.customer));
-        updateCustomer(res.data.data.customer);
+        localStorage.setItem('bakery_customer', JSON.stringify(res.data.data));
+        updateCustomer(res.data.data);
         setShowEditModal(false);
         alert('Cập nhật thông tin thành công!');
       }

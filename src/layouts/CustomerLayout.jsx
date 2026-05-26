@@ -146,6 +146,9 @@ export default function CustomerLayout() {
       const cust = JSON.parse(savedCustomer);
       setCustomer(cust);
       setFormData(prev => ({ ...prev, name: cust.name, phone: cust.phone, address: cust.address || '' }));
+      if (cust.location) {
+        setCustomerLocation(cust.location);
+      }
     }
   }, []);
 
@@ -154,8 +157,14 @@ export default function CustomerLayout() {
     setCustomer(newCustomer);
     if (newCustomer) {
       setFormData(prev => ({ ...prev, name: newCustomer.name, phone: newCustomer.phone, address: newCustomer.address || '' }));
+      if (newCustomer.location) {
+        setCustomerLocation(newCustomer.location);
+      } else {
+        setCustomerLocation(null);
+      }
     } else {
       setFormData({ name: '', phone: '', address: '', note: '' });
+      setCustomerLocation(null);
     }
   };
 
