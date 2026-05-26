@@ -101,6 +101,15 @@ export default function Profile() {
     } catch(err) {}
   };
 
+  const autoGeocodeAddress = async (addressText) => {
+    try {
+      const res = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressText)}&countrycodes=vn&limit=1`);
+      if (res.data && res.data.length > 0) {
+        setCustomerLocation({ lat: parseFloat(res.data[0].lat), lng: parseFloat(res.data[0].lon) });
+      }
+    } catch(err) {}
+  };
+
   const handleOpenEdit = () => {
     setEditForm({ name: customer.name || '', phone: customer.phone || '', address: customer.address || '' });
     if (customer.location && customer.location.lat !== undefined && customer.location.lat !== null) {
@@ -345,12 +354,15 @@ export default function Profile() {
                 ></textarea>
                 <button type="button" onClick={() => {
                   setIsMapOpen(true);
-                  if (navigator.geolocation && !customerLocation) {
-                    navigator.geolocation.getCurrentPosition(
-                      (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                      (err) => console.log('Lỗi định vị:', err),
-                      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                    );
+                  if (!customerLocation) {
+                    if (editForm.address) autoGeocodeAddress(editForm.address);
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                        (err) => console.log('Lỗi định vị:', err),
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                      );
+                    }
                   }
                 }} className="w-full flex items-center gap-2 justify-center py-2.5 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors text-sm">
                   <Navigation size={16} className="text-brand-600"/> 
@@ -413,7 +425,7 @@ export default function Profile() {
                Bạn có thể tìm kiếm, chạm vào bản đồ hoặc kéo thả ghim để chọn chính xác điểm giao.
              </div>
              <div className="h-[50vh] w-full relative z-0">
-                <MapContainer center={(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? [customerLocation.lat, customerLocation.lng] : [21.0285, 105.8542]} zoom={15} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? [customerLocation.lat, customerLocation.lng] : [10.810583, 106.709145]} zoom={15} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                   <MapUpdater center={customerLocation} />
                   <LocationMarker 

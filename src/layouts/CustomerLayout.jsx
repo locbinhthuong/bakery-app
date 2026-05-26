@@ -104,6 +104,15 @@ export default function CustomerLayout() {
     } catch(err) {}
   };
 
+  const autoGeocodeAddress = async (addressText) => {
+    try {
+      const res = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressText)}&countrycodes=vn&limit=1`);
+      if (res.data && res.data.length > 0) {
+        setCustomerLocation({ lat: parseFloat(res.data[0].lat), lng: parseFloat(res.data[0].lon) });
+      }
+    } catch(err) {}
+  };
+
   const [customer, setCustomer] = useState(null);
 
   const location = useLocation();
@@ -533,12 +542,15 @@ export default function CustomerLayout() {
                             
                             <button type="button" onClick={() => {
                               setIsMapOpen(true);
-                              if (navigator.geolocation && !customerLocation) {
-                                navigator.geolocation.getCurrentPosition(
-                                  (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                                  (err) => console.log('Lỗi định vị:', err),
-                                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                                );
+                              if (!customerLocation) {
+                                if (formData.address) autoGeocodeAddress(formData.address);
+                                if (navigator.geolocation) {
+                                  navigator.geolocation.getCurrentPosition(
+                                    (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                                    (err) => console.log('Lỗi định vị:', err),
+                                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                                  );
+                                }
                               }
                             }} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
                               <Navigation size={18} className="text-brand-600"/> 
@@ -634,7 +646,7 @@ export default function CustomerLayout() {
                Bạn có thể tìm kiếm, chạm vào bản đồ hoặc kéo thả ghim để chọn chính xác điểm giao.
              </div>
              <div className="h-[50vh] w-full relative z-0">
-                <MapContainer center={(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? [customerLocation.lat, customerLocation.lng] : (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [21.0285, 105.8542])} zoom={15} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? [customerLocation.lat, customerLocation.lng] : (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [10.810583, 106.709145])} zoom={15} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                   <MapUpdater center={customerLocation} />
                   <LocationMarker 
