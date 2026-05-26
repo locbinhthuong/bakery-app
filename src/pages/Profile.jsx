@@ -103,7 +103,11 @@ export default function Profile() {
 
   const handleOpenEdit = () => {
     setEditForm({ name: customer.name || '', phone: customer.phone || '', address: customer.address || '' });
-    setCustomerLocation(customer.location || null);
+    if (customer.location && customer.location.lat !== undefined && customer.location.lat !== null) {
+      setCustomerLocation(customer.location);
+    } else {
+      setCustomerLocation(null);
+    }
     setShowEditModal(true);
   };
 
@@ -350,7 +354,7 @@ export default function Profile() {
                   }
                 }} className="w-full flex items-center gap-2 justify-center py-2.5 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors text-sm">
                   <Navigation size={16} className="text-brand-600"/> 
-                  {customerLocation ? 'Đã ghim vị trí trên bản đồ' : 'Ghim vị trí trên bản đồ'}
+                  {(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? 'Đã ghim vị trí trên bản đồ' : 'Ghim vị trí trên bản đồ'}
                 </button>
               </div>
               <button type="submit" className="w-full py-3.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-md mt-4">
