@@ -289,9 +289,12 @@ export default function CustomerLayout() {
       <nav className={`hidden md:flex fixed top-0 w-full z-50 transition-all duration-500 ease-out-expo ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-12 flex justify-between items-center w-full">
           <div className="flex items-center gap-12">
-            <Link to="/" className="flex items-center gap-2 group">
-              <img src="/logo_donut.jpg" alt="MABAE Donut" className="w-10 h-10 object-cover rounded-full shadow-sm transition-transform duration-500 group-hover:rotate-12 bg-white" />
-              <span className="text-2xl font-serif font-bold tracking-tight text-brand-800">MABAE Donut</span>
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-brand-200 rounded-full blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <img src="/logo_donut.jpg" alt="MABAE - Tiệm Bánh Donut" className="relative w-12 h-12 md:w-14 md:h-14 object-contain p-0.5 rounded-full shadow-md transition-transform duration-500 group-hover:rotate-[360deg] bg-white border-2 border-brand-100" />
+              </div>
+              <span className="text-2xl font-serif font-bold tracking-tight text-brand-800 drop-shadow-sm">MABAE <span className="text-brand-500 text-xl">- Tiệm Bánh Donut</span></span>
             </Link>
             <div className="flex items-center gap-8 text-sm font-bold tracking-wide uppercase">
               <Link to="/" className={`transition-colors ${location.pathname === '/' ? 'text-brand-600' : 'text-brand-800 hover:text-brand-600'}`}>Trang chủ</Link>
@@ -359,14 +362,12 @@ export default function CustomerLayout() {
         <div className="max-w-7xl mx-auto px-12">
           <div className="grid grid-cols-4 gap-12 mb-16">
             <div className="col-span-2">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center text-white shadow-md">
-                  <CakeSlice size={24} />
-                </div>
-                <span className="text-3xl font-serif font-bold tracking-tight text-stone-900">MABAE Donut</span>
+              <div className="flex items-center gap-4 mb-6">
+                <img src="/logo_donut.jpg" alt="Logo" className="w-16 h-16 object-contain p-1 rounded-full shadow-md border-2 border-brand-100 bg-white" />
+                <span className="text-3xl font-serif font-bold tracking-tight text-stone-900">MABAE <span className="text-brand-600">- Tiệm Bánh Donut</span></span>
               </div>
-              <p className="text-stone-600 leading-relaxed max-w-sm mb-8 mt-6">
-                Mang đến hương vị ngọt ngào và lãng mạn từ những mẻ bánh Pháp thủ công, được nướng bằng cả trái tim.
+              <p className="text-stone-600 leading-relaxed max-w-sm mb-8 mt-6 italic">
+                "Welcome to Mabae Donut - Where memories come alive with every Donuts! 🍩💝"
               </p>
             </div>
             <div>
@@ -389,7 +390,7 @@ export default function CustomerLayout() {
             </div>
           </div>
           <div className="pt-8 border-t border-brand-200 text-center text-sm text-stone-500 font-medium">
-            © 2026 MABAE Donut. All rights reserved.
+            © 2026 MABAE - Tiệm Bánh Donut. All rights reserved.
           </div>
         </div>
       </footer>

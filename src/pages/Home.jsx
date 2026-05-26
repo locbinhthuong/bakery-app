@@ -59,7 +59,7 @@ export default function Home() {
       {/* Top Header Section (Mobile Only) */}
       <div className="pt-10 px-4 pb-4 md:hidden">
         <h1 className="text-2xl font-serif font-bold text-stone-900 text-center tracking-wide">
-          MABAE Donut
+          MABAE <span className="text-brand-600">- Tiệm Bánh Donut</span>
         </h1>
       </div>
 
@@ -83,9 +83,9 @@ export default function Home() {
         ) : (
           <div className="w-full aspect-video rounded-2xl overflow-hidden relative shadow-md">
             <img src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?q=80&w=2000&auto=format&fit=crop" alt="Banner" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/60 to-transparent flex flex-col justify-end p-6 md:p-8">
-              <h2 className="text-white font-serif text-3xl md:text-5xl font-bold mb-2">MABAE Donut</h2>
-              <p className="text-brand-50 text-sm md:text-base font-medium">Bánh tươi mỗi ngày</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/80 via-brand-900/40 to-transparent flex flex-col justify-end p-6 md:p-8">
+              <h2 className="text-white font-serif text-3xl md:text-5xl font-bold mb-3 drop-shadow-lg">MABAE - Tiệm Bánh Donut</h2>
+              <p className="text-brand-50 text-sm md:text-base font-medium drop-shadow-md">Welcome to Mabae Donut - Where memories come alive with every Donuts! 🍩</p>
             </div>
           </div>
         )}
