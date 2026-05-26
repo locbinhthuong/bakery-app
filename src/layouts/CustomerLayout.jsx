@@ -628,16 +628,17 @@ export default function CustomerLayout() {
           <span className="text-[10px] font-bold">Trang chủ</span>
         </Link>
         <Link to="/menu" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/menu' ? 'text-brand-900' : 'text-brand-800'}`}>
-          <Coffee size={24} strokeWidth={location.pathname === '/menu' ? 2.5 : 2} fill={location.pathname === '/menu' ? 'currentColor' : 'none'} />
+          <CakeSlice size={24} strokeWidth={location.pathname === '/menu' ? 2.5 : 2} fill={location.pathname === '/menu' ? 'currentColor' : 'none'} />
           <span className="text-[10px] font-bold">Đặt hàng</span>
         </Link>
         
         {/* Floating Middle Button (Orders Activity) */}
-        <div className="relative w-[20%] flex justify-center">
-          <Link to="/orders" className="absolute bottom-1 w-14 h-14 bg-brand-900 text-brand-100 rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(83,58,41,0.4)] border-4 border-white transform hover:scale-105 transition-transform">
+        <Link to="/orders" className={`relative flex flex-col items-center justify-end w-[20%] transition-colors ${location.pathname === '/orders' ? 'text-brand-900' : 'text-brand-800'}`}>
+          <div className="absolute bottom-5 w-14 h-14 bg-brand-900 text-brand-100 rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(83,58,41,0.4)] border-4 border-white transform hover:scale-105 transition-transform">
             <Receipt size={24} strokeWidth={2} />
-          </Link>
-        </div>
+          </div>
+          <span className="text-[10px] font-bold mt-6">Hoạt động</span>
+        </Link>
 
         <Link to="/promos" className={`flex flex-col items-center gap-1 w-[20%] transition-colors ${location.pathname === '/promos' ? 'text-brand-900' : 'text-brand-800'}`}>
           <Ticket size={24} strokeWidth={location.pathname === '/promos' ? 2.5 : 2} fill={location.pathname === '/promos' ? 'currentColor' : 'none'} />
