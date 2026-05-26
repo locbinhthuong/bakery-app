@@ -49,12 +49,15 @@ export default function Profile() {
     return (
       <div className="pb-24 pt-12 px-4 bg-brand-50 min-h-screen flex flex-col justify-center">
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-brand-100 max-w-sm w-full mx-auto">
-          <h2 className="text-2xl font-serif font-bold text-stone-900 mb-2 text-center">
-            {isLoginMode ? 'Đăng nhập' : 'Tạo tài khoản'}
-          </h2>
-          <p className="text-stone-600 text-sm mb-6 text-center">
-            {isLoginMode ? 'Tham gia cùng Le Petit Bakery' : 'Đăng ký ngay để nhận ưu đãi'}
-          </p>
+          <div className="flex flex-col items-center mb-6">
+            <img src="/logo_donut.jpg" alt="Logo" className="w-24 h-24 object-contain p-1 rounded-full shadow-md border-2 border-brand-100 bg-white mb-4" />
+            <h2 className="text-2xl font-serif font-bold text-stone-900 mb-2 text-center">
+              {isLoginMode ? 'Đăng nhập' : 'Tạo tài khoản'}
+            </h2>
+            <p className="text-stone-600 text-sm text-center">
+              {isLoginMode ? 'Tham gia cùng MABAE - Tiệm Bánh Donut' : 'Đăng ký ngay để nhận ưu đãi từ MABAE'}
+            </p>
+          </div>
           
           <form onSubmit={handleAuthSubmit} className="space-y-4">
             {!isLoginMode && (
