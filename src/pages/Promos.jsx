@@ -1,9 +1,12 @@
 import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
-import { Truck, Percent } from 'lucide-react';
+import { Truck, Percent, Star } from 'lucide-react';
+import axios from 'axios';
+
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
 export default function Promos() {
-  const { promos } = useOutletContext();
+  const { promos, customer, updateCustomer } = useOutletContext();
   const [activeTab, setActiveTab] = useState('kha_dung');
   const [activeSubTab, setActiveSubTab] = useState('uu_dai');
   const [code, setCode] = useState('');
@@ -11,10 +14,16 @@ export default function Promos() {
   const now = new Date();
   const activePromos = [];
   const inactivePromos = [];
+  const pointPromos = [];
 
   const voucherPromos = promos.filter(p => p.postType === 'VOUCHER' || p.discountType !== 'NONE');
 
   voucherPromos.forEach(promo => {
+    if (promo.pointsCost > 0) {
+      pointPromos.push(promo);
+      return;
+    }
+
     let isInactive = false;
     if (promo.endDate && new Date(promo.endDate) < now) isInactive = true;
     if (promo.startDate && new Date(promo.startDate) > now) isInactive = true;
@@ -79,11 +88,18 @@ export default function Promos() {
         </div>
 
         {/* Promos List */}
-        <h2 className="text-lg font-serif font-bold text-stone-900 mb-4">Mã ưu đãi</h2>
+        <h2 className="text-lg font-serif font-bold text-stone-900 mb-4">{activeSubTab === 'doi_diem' ? 'Đổi điểm lấy quà' : 'Mã ưu đãi'}</h2>
         
+        {activeSubTab === 'doi_diem' && (
+          <div className="mb-4 bg-brand-100/50 p-4 rounded-xl border border-brand-200 flex justify-between items-center">
+            <span className="font-bold text-stone-700">Điểm của bạn:</span>
+            <span className="text-xl font-bold text-brand-600 flex items-center gap-1"><Star size={20}/> {customer?.points || 0}</span>
+          </div>
+        )}
+
         <div className="space-y-4">
-          {(activeTab === 'kha_dung' ? activePromos : inactivePromos).map(promo => {
-            const isInactive = activeTab === 'khong_kha_dung';
+          {(activeSubTab === 'doi_diem' ? pointPromos : (activeTab === 'kha_dung' ? activePromos : inactivePromos)).map(promo => {
+            const isInactive = activeSubTab !== 'doi_diem' && activeTab === 'khong_kha_dung';
             let reason = '';
             if (isInactive) {
               const now = new Date();
@@ -116,7 +132,42 @@ export default function Promos() {
                     {promo.maxUsagePerUser > 0 && <div>• Tối đa {promo.maxUsagePerUser} lần/khách</div>}
                   </div>
 
-                  {isInactive ? (
+                  {activeSubTab === 'doi_diem' ? (
+                    <button 
+                      onClick={async () => {
+                        if (!customer) {
+                          alert('Vui lòng đăng nhập để đổi quà!');
+                          return;
+                        }
+                        if (customer.points < promo.pointsCost) {
+                          alert('Bạn không đủ điểm!');
+                          return;
+                        }
+                        if (customer.savedVouchers?.includes(promo._id)) {
+                          alert('Bạn đã đổi mã này rồi!');
+                          return;
+                        }
+                        if (window.confirm(`Xác nhận dùng ${promo.pointsCost} điểm để đổi mã này?`)) {
+                          try {
+                            const token = localStorage.getItem('bakery_token');
+                            const res = await axios.post(`${BACKEND_URL}/customer/promos/redeem`, { promoId: promo._id }, {
+                              headers: { Authorization: `Bearer ${token}` }
+                            });
+                            if (res.data.success) {
+                              alert('Đổi mã thành công!');
+                              updateCustomer(res.data.data);
+                            }
+                          } catch (err) {
+                            alert(err.response?.data?.message || 'Lỗi đổi mã');
+                          }
+                        }
+                      }}
+                      disabled={customer?.savedVouchers?.includes(promo._id) || customer?.points < promo.pointsCost}
+                      className={`text-xs font-bold px-4 py-2 rounded-lg transition-colors mt-2 ${customer?.savedVouchers?.includes(promo._id) ? 'bg-stone-200 text-stone-500' : (customer?.points >= promo.pointsCost ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm' : 'bg-stone-100 text-stone-400')}`}
+                    >
+                      {customer?.savedVouchers?.includes(promo._id) ? 'ĐÃ ĐỔI' : `ĐỔI (${promo.pointsCost} ĐIỂM)`}
+                    </button>
+                  ) : (isInactive ? (
                     <span className="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-md">
                       {reason}
                     </span>
@@ -127,14 +178,17 @@ export default function Promos() {
                     >
                       MÃ: {promo.code}
                     </button>
-                  )}
+                  ))}
                 </div>
               </div>
             );
           })}
 
           {/* Hardcoded visual mockup for empty/default */}
-          {activeTab === 'kha_dung' && activePromos.length === 0 && (
+          {activeSubTab === 'doi_diem' && pointPromos.length === 0 && (
+            <div className="text-center py-10 text-stone-500 font-medium">Hiện không có quà nào để đổi bằng điểm.</div>
+          )}
+          {activeSubTab !== 'doi_diem' && activeTab === 'kha_dung' && activePromos.length === 0 && (
             <div className="text-center py-10 text-stone-500 font-medium">Hiện không có mã ưu đãi nào khả dụng.</div>
           )}
           {activeTab === 'khong_kha_dung' && inactivePromos.length === 0 && (

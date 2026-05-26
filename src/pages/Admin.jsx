@@ -305,6 +305,7 @@ export default function Admin() {
         minOrderValue: Number(fd.get('minOrderValue')) || 0,
         totalUsageLimit: Number(fd.get('totalUsageLimit')) || 0,
         maxUsagePerUser: Number(fd.get('maxUsagePerUser')) || 0,
+        pointsCost: Number(fd.get('pointsCost')) || 0,
         startDate: fd.get('startDate') ? new Date(fd.get('startDate')).toISOString() : null,
         endDate: fd.get('endDate') ? new Date(fd.get('endDate')).toISOString() : null,
         isActive: true
@@ -356,6 +357,7 @@ export default function Admin() {
         minOrderValue: fd.get('minOrderValue') !== null ? Number(fd.get('minOrderValue')) : editingPromo.minOrderValue,
         totalUsageLimit: fd.get('totalUsageLimit') !== null ? Number(fd.get('totalUsageLimit')) : editingPromo.totalUsageLimit,
         maxUsagePerUser: fd.get('maxUsagePerUser') !== null ? Number(fd.get('maxUsagePerUser')) : editingPromo.maxUsagePerUser,
+        pointsCost: fd.get('pointsCost') !== null ? Number(fd.get('pointsCost')) : editingPromo.pointsCost,
         startDate: fd.get('startDate') ? new Date(fd.get('startDate')).toISOString() : editingPromo.startDate,
         endDate: fd.get('endDate') ? new Date(fd.get('endDate')).toISOString() : editingPromo.endDate,
         isActive: editingPromo.isActive
@@ -662,10 +664,14 @@ export default function Admin() {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                           <label className="block text-xs font-bold text-stone-500 mb-1">Đơn tối thiểu (VNĐ)</label>
                           <input name="minOrderValue" type="number" placeholder="0" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-stone-500 mb-1">Điểm đổi mã</label>
+                          <input name="pointsCost" type="number" placeholder="0 = Phát miễn phí" className="w-full px-4 py-2 bg-white border rounded-lg outline-none text-sm" />
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-stone-500 mb-1">Tổng lượt dùng</label>
@@ -899,7 +905,64 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Lưu Tọa Độ</button>
+                <div className="mb-6 pt-6 border-t border-stone-100">
+                  <h3 className="text-lg font-bold mb-4">Tích Điểm & Hạng Thành Viên</h3>
+                  
+                  <div className="mb-4">
+                    <label className="block text-sm font-bold text-stone-700 mb-2">Tỷ lệ quy đổi điểm (VNĐ = 1 Điểm)</label>
+                    <input 
+                      type="number" 
+                      value={settings.pointsConversionRate || 1000}
+                      onChange={e => setSettings({...settings, pointsConversionRate: Number(e.target.value)})}
+                      className="w-full px-4 py-2 border rounded-lg bg-stone-50" 
+                    />
+                    <p className="text-xs text-stone-500 mt-1">Ví dụ: 1000 VNĐ = 1 điểm. Đơn hàng 50k sẽ được 50 điểm.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="block text-sm font-bold text-stone-700 mb-2">Các hạng thành viên</label>
+                    {(settings.membershipTiers || []).map((tier, index) => (
+                      <div key={index} className="flex gap-4 items-center bg-stone-50 p-3 rounded-xl border border-stone-100">
+                        <div className="flex-1">
+                          <label className="text-xs text-stone-500 block mb-1">Tên Hạng</label>
+                          <input 
+                            type="text" 
+                            value={tier.name}
+                            onChange={e => {
+                              const newTiers = [...settings.membershipTiers];
+                              newTiers[index].name = e.target.value;
+                              setSettings({...settings, membershipTiers: newTiers});
+                            }}
+                            className="w-full px-3 py-1.5 border rounded-md"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-stone-500 block mb-1">Điểm Tối Thiểu</label>
+                          <input 
+                            type="number" 
+                            value={tier.minPoints}
+                            onChange={e => {
+                              const newTiers = [...settings.membershipTiers];
+                              newTiers[index].minPoints = Number(e.target.value);
+                              setSettings({...settings, membershipTiers: newTiers});
+                            }}
+                            className="w-full px-3 py-1.5 border rounded-md"
+                          />
+                        </div>
+                        <button type="button" onClick={() => {
+                          const newTiers = [...settings.membershipTiers];
+                          newTiers.splice(index, 1);
+                          setSettings({...settings, membershipTiers: newTiers});
+                        }} className="text-red-500 font-bold p-2 hover:bg-red-50 rounded-lg mt-5">Xóa</button>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => setSettings({...settings, membershipTiers: [...(settings.membershipTiers || []), {name: 'Hạng mới', minPoints: 0}]})} className="px-4 py-2 bg-stone-200 text-stone-700 text-sm font-bold rounded-lg hover:bg-stone-300">
+                      + Thêm hạng mới
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Lưu Cài Đặt</button>
               </form>
             </div>
           )}

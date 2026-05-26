@@ -74,9 +74,28 @@ function MapUpdater({ center }) {
 const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
 
 export default function Profile() {
-  const { customer, updateCustomer } = useOutletContext();
+  const { customer, updateCustomer, settings } = useOutletContext();
   const navigate = useNavigate();
   
+  // Membership Logic
+  const getMembershipTier = (points) => {
+    if (!settings || !settings.membershipTiers || settings.membershipTiers.length === 0) return 'Thành Viên Mới';
+    const tiers = [...settings.membershipTiers].sort((a, b) => b.minPoints - a.minPoints);
+    for (const tier of tiers) {
+      if (points >= tier.minPoints) return tier.name;
+    }
+    return tiers[tiers.length - 1]?.name || 'Thành Viên Mới';
+  };
+
+  const getNextTier = (points) => {
+    if (!settings || !settings.membershipTiers || settings.membershipTiers.length === 0) return null;
+    const tiers = [...settings.membershipTiers].sort((a, b) => a.minPoints - b.minPoints);
+    for (const tier of tiers) {
+      if (tier.minPoints > points) return tier;
+    }
+    return null;
+  };
+
   // Auth states (if not logged in)
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [authForm, setAuthForm] = useState({ phone: '', password: '', name: '' });
@@ -243,7 +262,7 @@ export default function Profile() {
             <div>
               <h2 className="text-2xl font-bold text-stone-900 mb-2">{customer.name}</h2>
               <div className="inline-flex items-center gap-1.5 bg-brand-500/20 px-3 py-1 rounded-full text-brand-800 font-bold text-sm border border-brand-200">
-                <span>⭐</span> 0 điểm
+                <span>⭐</span> {customer.points || 0} điểm khả dụng
               </div>
             </div>
             <div className="w-10 h-10 bg-white/50 rounded-full flex items-center justify-center">
@@ -252,12 +271,35 @@ export default function Profile() {
           </div>
           
           <div>
-            <h3 className="text-2xl font-serif text-stone-800 mb-2">Thành Viên Mới</h3>
-            <div className="w-full h-1 bg-brand-900/10 rounded-full mb-3">
-              <div className="w-[10%] h-full bg-brand-500 rounded-full"></div>
-            </div>
-            <p className="text-stone-700 text-xs font-medium mb-1">Tích luỹ thêm để thăng hạng thẻ</p>
-            <p className="text-brand-700 text-xs font-bold flex items-center">Tìm hiểu về quyền lợi thẻ <Info className="w-3 h-3 ml-1"/></p>
+            <h3 className="text-2xl font-serif text-stone-800 mb-2">{getMembershipTier(customer.totalPoints || 0)}</h3>
+            
+            {(() => {
+              const nextTier = getNextTier(customer.totalPoints || 0);
+              if (nextTier) {
+                const currentPoints = customer.totalPoints || 0;
+                const pointsNeeded = nextTier.minPoints;
+                const progress = Math.min(100, (currentPoints / pointsNeeded) * 100);
+                return (
+                  <>
+                    <div className="w-full h-1 bg-brand-900/10 rounded-full mb-3">
+                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="text-stone-700 text-xs font-medium mb-1">Tích luỹ thêm {pointsNeeded - currentPoints} điểm để lên hạng {nextTier.name}</p>
+                  </>
+                );
+              } else {
+                return (
+                  <>
+                    <div className="w-full h-1 bg-brand-900/10 rounded-full mb-3">
+                      <div className="h-full bg-brand-500 rounded-full" style={{ width: '100%' }}></div>
+                    </div>
+                    <p className="text-stone-700 text-xs font-medium mb-1">Bạn đã đạt hạng cao nhất!</p>
+                  </>
+                );
+              }
+            })()}
+
+            <p className="text-brand-700 text-xs font-bold flex items-center mt-2">Tìm hiểu về quyền lợi thẻ <Info className="w-3 h-3 ml-1"/></p>
           </div>
         </div>
 

@@ -393,7 +393,7 @@ export default function CustomerLayout() {
 
       {/* Main Content Area */}
       <div className="min-h-[70vh]">
-        <Outlet context={{ products, promos, categories, addToCart, customer, updateCustomer, isCheckout, setIsCheckout, cart }} />
+        <Outlet context={{ products, promos, categories, addToCart, customer, updateCustomer, isCheckout, setIsCheckout, cart, settings }} />
       </div>
 
       {/* Footer / Store info (Hidden on mobile to match App feel) */}
