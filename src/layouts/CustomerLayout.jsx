@@ -156,11 +156,9 @@ export default function CustomerLayout() {
       const cust = JSON.parse(savedCustomer);
       setCustomer(cust);
       setFormData(prev => ({ ...prev, name: cust.name, phone: cust.phone, address: cust.address || '' }));
-      // We don't auto-load into customerLocation anymore because we have addressOption
     }
   }, []);
 
-  // Update customer function passed to Outlet
   const updateCustomer = (newCustomer) => {
     setCustomer(newCustomer);
     if (newCustomer) {
@@ -183,15 +181,29 @@ export default function CustomerLayout() {
   };
 
   const removeFromCart = (productId) => {
-    setCart(prev => prev.filter(item => item._id !== productId));
+    setCart(prev => {
+      const newCart = prev.filter(item => item._id !== productId);
+      localStorage.setItem('bakery_cart', JSON.stringify(newCart));
+      if (newCart.length === 0) setIsCheckout(false);
+      return newCart;
+    });
   };
 
   const increaseQuantity = (productId) => {
-    setCart(prev => prev.map(item => item._id === productId ? { ...item, quantity: item.quantity + 1 } : item));
+    setCart(prev => {
+      const newCart = prev.map(item => item._id === productId ? { ...item, quantity: item.quantity + 1 } : item);
+      localStorage.setItem('bakery_cart', JSON.stringify(newCart));
+      return newCart;
+    });
   };
 
   const decreaseQuantity = (productId) => {
-    setCart(prev => prev.map(item => item._id === productId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item));
+    setCart(prev => {
+      const newCart = prev.map(item => item._id === productId ? { ...item, quantity: item.quantity - 1 } : item).filter(item => item.quantity > 0);
+      localStorage.setItem('bakery_cart', JSON.stringify(newCart));
+      if (newCart.length === 0) setIsCheckout(false);
+      return newCart;
+    });
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -527,8 +539,14 @@ export default function CustomerLayout() {
                       <div className="space-y-3">
                         {hasSavedLocation && (
                           <div className="flex gap-2 p-1.5 bg-stone-100 rounded-xl mb-2">
-                            <button type="button" onClick={() => setAddressOption('SAVED')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${addressOption === 'SAVED' ? 'bg-white shadow-sm text-brand-700' : 'text-brand-800/70 hover:bg-stone-200'}`}>Địa chỉ đã lưu</button>
-                            <button type="button" onClick={() => setAddressOption('NEW')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${addressOption === 'NEW' ? 'bg-white shadow-sm text-brand-700' : 'text-brand-800/70 hover:bg-stone-200'}`}>Địa chỉ khác</button>
+                            <button type="button" onClick={() => {
+                              setAddressOption('SAVED');
+                              setFormData(prev => ({...prev, address: customer?.address || ''}));
+                            }} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${addressOption === 'SAVED' ? 'bg-white shadow-sm text-brand-700' : 'text-brand-800/70 hover:bg-stone-200'}`}>Địa chỉ đã lưu</button>
+                            <button type="button" onClick={() => {
+                              setAddressOption('NEW');
+                              setFormData(prev => ({...prev, address: ''}));
+                            }} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${addressOption === 'NEW' ? 'bg-white shadow-sm text-brand-700' : 'text-brand-800/70 hover:bg-stone-200'}`}>Địa chỉ khác</button>
                           </div>
                         )}
 
