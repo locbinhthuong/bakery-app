@@ -146,8 +146,10 @@ export default function CustomerLayout() {
       const cust = JSON.parse(savedCustomer);
       setCustomer(cust);
       setFormData(prev => ({ ...prev, name: cust.name, phone: cust.phone, address: cust.address || '' }));
-      if (cust.location) {
-        setCustomerLocation(cust.location);
+      if (cust.location && cust.location.lat !== undefined && cust.location.lat !== null) {
+        setCustomerLocation({ lat: cust.location.lat, lng: cust.location.lng });
+      } else {
+        setCustomerLocation(null);
       }
     }
   }, []);
@@ -157,8 +159,8 @@ export default function CustomerLayout() {
     setCustomer(newCustomer);
     if (newCustomer) {
       setFormData(prev => ({ ...prev, name: newCustomer.name, phone: newCustomer.phone, address: newCustomer.address || '' }));
-      if (newCustomer.location) {
-        setCustomerLocation(newCustomer.location);
+      if (newCustomer.location && newCustomer.location.lat !== undefined && newCustomer.location.lat !== null) {
+        setCustomerLocation({ lat: newCustomer.location.lat, lng: newCustomer.location.lng });
       } else {
         setCustomerLocation(null);
       }
@@ -194,7 +196,7 @@ export default function CustomerLayout() {
   
   let previewShippingFee = 0;
   let distanceKm = 0;
-  if (deliveryMethod === 'DELIVERY' && settings && customerLocation && settings.storeLocation && shippingConfig) {
+  if (deliveryMethod === 'DELIVERY' && settings && customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null && settings.storeLocation && shippingConfig) {
     const lat1 = settings.storeLocation.lat;
     const lon1 = settings.storeLocation.lng;
     const lat2 = customerLocation.lat;
@@ -605,7 +607,7 @@ export default function CustomerLayout() {
                Bạn có thể tìm kiếm, chạm vào bản đồ hoặc kéo thả ghim để chọn chính xác điểm giao.
              </div>
              <div className="h-[50vh] w-full relative z-0">
-                <MapContainer center={customerLocation || (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [21.0285, 105.8542])} zoom={15} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? [customerLocation.lat, customerLocation.lng] : (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [21.0285, 105.8542])} zoom={15} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                   <MapUpdater center={customerLocation} />
                   <LocationMarker 

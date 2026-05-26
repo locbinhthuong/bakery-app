@@ -409,7 +409,7 @@ export default function Profile() {
                Bạn có thể tìm kiếm, chạm vào bản đồ hoặc kéo thả ghim để chọn chính xác điểm giao.
              </div>
              <div className="h-[50vh] w-full relative z-0">
-                <MapContainer center={customerLocation || [21.0285, 105.8542]} zoom={15} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? [customerLocation.lat, customerLocation.lng] : [21.0285, 105.8542]} zoom={15} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
                   <MapUpdater center={customerLocation} />
                   <LocationMarker 
