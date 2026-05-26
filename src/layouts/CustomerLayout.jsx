@@ -82,6 +82,7 @@ export default function CustomerLayout() {
   const [isCheckout, setIsCheckout] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', address: '', note: '' });
   const [deliveryMethod, setDeliveryMethod] = useState('DELIVERY');
+  const [addressOption, setAddressOption] = useState('SAVED');
   const [pickupTime, setPickupTime] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [discountCode, setDiscountCode] = useState('');
@@ -146,11 +147,7 @@ export default function CustomerLayout() {
       const cust = JSON.parse(savedCustomer);
       setCustomer(cust);
       setFormData(prev => ({ ...prev, name: cust.name, phone: cust.phone, address: cust.address || '' }));
-      if (cust.location && cust.location.lat !== undefined && cust.location.lat !== null) {
-        setCustomerLocation({ lat: cust.location.lat, lng: cust.location.lng });
-      } else {
-        setCustomerLocation(null);
-      }
+      // We don't auto-load into customerLocation anymore because we have addressOption
     }
   }, []);
 
@@ -159,14 +156,10 @@ export default function CustomerLayout() {
     setCustomer(newCustomer);
     if (newCustomer) {
       setFormData(prev => ({ ...prev, name: newCustomer.name, phone: newCustomer.phone, address: newCustomer.address || '' }));
-      if (newCustomer.location && newCustomer.location.lat !== undefined && newCustomer.location.lat !== null) {
-        setCustomerLocation({ lat: newCustomer.location.lat, lng: newCustomer.location.lng });
-      } else {
-        setCustomerLocation(null);
-      }
     } else {
       setFormData({ name: '', phone: '', address: '', note: '' });
       setCustomerLocation(null);
+      setAddressOption('SAVED');
     }
   };
 
@@ -194,13 +187,18 @@ export default function CustomerLayout() {
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
+  const hasSavedLocation = customer && customer.location && customer.location.lat !== undefined && customer.location.lat !== null;
+  const activeLocation = (deliveryMethod === 'DELIVERY' && hasSavedLocation && addressOption === 'SAVED') 
+    ? customer.location 
+    : customerLocation;
+
   let previewShippingFee = 0;
   let distanceKm = 0;
-  if (deliveryMethod === 'DELIVERY' && settings && customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null && settings.storeLocation && shippingConfig) {
+  if (deliveryMethod === 'DELIVERY' && settings && activeLocation && activeLocation.lat !== undefined && activeLocation.lat !== null && settings.storeLocation && shippingConfig) {
     const lat1 = settings.storeLocation.lat;
     const lon1 = settings.storeLocation.lng;
-    const lat2 = customerLocation.lat;
-    const lon2 = customerLocation.lng;
+    const lat2 = activeLocation.lat;
+    const lon2 = activeLocation.lng;
     
     const R = 6371; 
     const dLat = (lat2 - lat1) * (Math.PI / 180);  
@@ -263,17 +261,30 @@ export default function CustomerLayout() {
   const handleCheckout = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) return alert('Vui lòng điền tên và SĐT');
-    if (deliveryMethod === 'DELIVERY' && !formData.address) return alert('Vui lòng nhập địa chỉ giao hàng');
+    if (deliveryMethod === 'DELIVERY') {
+      if (hasSavedLocation && addressOption === 'SAVED') {
+        // use saved
+      } else if (!formData.address) {
+        return alert('Vui lòng nhập địa chỉ giao hàng');
+      }
+    }
     if (deliveryMethod === 'PICKUP' && !pickupTime) return alert('Vui lòng chọn thời gian đến lấy bánh');
     
+    let finalDeliveryAddress = formData.address;
+    let finalCustomerLocation = customerLocation;
+    if (deliveryMethod === 'DELIVERY' && hasSavedLocation && addressOption === 'SAVED') {
+      finalDeliveryAddress = customer.address;
+      finalCustomerLocation = { lat: customer.location.lat, lng: customer.location.lng };
+    }
+
     try {
       await axios.post(`${BACKEND_URL}/orders`, {
         customerName: formData.name,
         customerPhone: formData.phone,
         deliveryMethod,
         pickupTime: deliveryMethod === 'PICKUP' ? pickupTime : null,
-        deliveryAddress: deliveryMethod === 'DELIVERY' ? formData.address : '',
-        customerLocation: deliveryMethod === 'DELIVERY' ? customerLocation : null,
+        deliveryAddress: deliveryMethod === 'DELIVERY' ? finalDeliveryAddress : '',
+        customerLocation: deliveryMethod === 'DELIVERY' ? finalCustomerLocation : null,
         note: formData.note,
         items: cart.map(i => ({ productId: i._id, name: i.name, price: i.price, quantity: i.quantity })),
         subTotal: totalAmount,
@@ -504,27 +515,43 @@ export default function CustomerLayout() {
                     />
                     
                     {deliveryMethod === 'DELIVERY' && (
-                      <>
-                        <input 
-                          type="text" placeholder="Địa chỉ giao hàng" required={deliveryMethod === 'DELIVERY'}
-                          className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
-                          value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})}
-                        />
-                        
-                        <button type="button" onClick={() => {
-                          setIsMapOpen(true);
-                          if (navigator.geolocation && !customerLocation) {
-                            navigator.geolocation.getCurrentPosition(
-                              (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                              (err) => console.log('Lỗi định vị:', err),
-                              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                            );
-                          }
-                        }} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
-                          <Navigation size={18} className="text-brand-600"/> 
-                          {customerLocation ? 'Đã ghim vị trí (Sửa)' : 'Ghim vị trí nhận hàng (Tính ship)'}
-                        </button>
-                      </>
+                      <div className="space-y-3">
+                        {hasSavedLocation && (
+                          <div className="flex gap-2 p-1.5 bg-stone-100 rounded-xl mb-2">
+                            <button type="button" onClick={() => setAddressOption('SAVED')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${addressOption === 'SAVED' ? 'bg-white shadow-sm text-brand-700' : 'text-brand-800/70 hover:bg-stone-200'}`}>Địa chỉ đã lưu</button>
+                            <button type="button" onClick={() => setAddressOption('NEW')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${addressOption === 'NEW' ? 'bg-white shadow-sm text-brand-700' : 'text-brand-800/70 hover:bg-stone-200'}`}>Địa chỉ khác</button>
+                          </div>
+                        )}
+
+                        {(!hasSavedLocation || addressOption === 'NEW') ? (
+                          <>
+                            <input 
+                              type="text" placeholder="Địa chỉ giao hàng" required={(!hasSavedLocation || addressOption === 'NEW')}
+                              className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
+                              value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})}
+                            />
+                            
+                            <button type="button" onClick={() => {
+                              setIsMapOpen(true);
+                              if (navigator.geolocation && !customerLocation) {
+                                navigator.geolocation.getCurrentPosition(
+                                  (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                                  (err) => console.log('Lỗi định vị:', err),
+                                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                                );
+                              }
+                            }} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
+                              <Navigation size={18} className="text-brand-600"/> 
+                              {customerLocation ? 'Đã ghim vị trí (Sửa)' : 'Ghim vị trí nhận hàng (Tính ship)'}
+                            </button>
+                          </>
+                        ) : (
+                          <div className="p-4 bg-brand-50 rounded-xl border border-brand-100 flex items-start gap-3">
+                            <MapPin size={20} className="text-brand-600 shrink-0 mt-0.5" />
+                            <span className="text-sm font-medium text-stone-700">{customer.address}</span>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {deliveryMethod === 'PICKUP' && (
