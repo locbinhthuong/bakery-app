@@ -57,8 +57,9 @@ export default function Home() {
   return (
     <div className="pb-20 md:pt-28">
       {/* Top Header Section (Mobile Only) */}
-      <div className="pt-10 px-4 pb-4 md:hidden">
-        <h1 className="text-2xl font-serif font-bold text-stone-900 text-center tracking-wide">
+      <div className="pt-10 px-4 pb-4 md:hidden flex flex-col items-center justify-center gap-2">
+        <img src="/logo_donut.jpg" alt="Logo" className="w-16 h-16 object-contain p-1 rounded-full shadow-md border-2 border-brand-100 bg-white" />
+        <h1 className="text-xl font-serif font-bold text-stone-900 text-center tracking-wide">
           MABAE <span className="text-brand-600">- Tiệm Bánh Donut</span>
         </h1>
       </div>
