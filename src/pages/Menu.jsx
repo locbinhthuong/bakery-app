@@ -1,14 +1,16 @@
-import { useOutletContext } from 'react-router-dom';
-import { Search, Plus, CakeSlice, ShoppingBag, Clock, CheckCircle } from 'lucide-react';
+import { useOutletContext, useNavigate } from 'react-router-dom';
+import { Search, Plus, CakeSlice, ShoppingBag, Clock, CheckCircle, Bell } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductImageSlider from '../components/ProductImageSlider';
 
 export default function Menu() {
-  const { products, categories: dbCategories, addToCart } = useOutletContext();
+  const { products, categories: dbCategories, addToCart, customer } = useOutletContext();
   const [activeTab, setActiveTab] = useState('');
   const [myOrders, setMyOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch orders if phone exists
@@ -153,9 +155,59 @@ export default function Menu() {
       <div className="sticky top-0 bg-brand-50 z-30 pt-12 pb-2 px-4 shadow-sm border-b border-brand-100">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-serif font-bold text-stone-900">Thực đơn</h1>
-          <button className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-stone-700">
-            <Search size={20} />
-          </button>
+          <div className="flex items-center gap-3 relative">
+            <button 
+              onClick={() => {
+                if (!customer) {
+                  alert('Vui lòng đăng nhập để xem thông báo');
+                  navigate('/profile');
+                  return;
+                }
+                setShowNotifications(!showNotifications);
+              }}
+              className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative"
+            >
+              <Bell size={20} />
+              {myOrders.filter(o => o.status !== 'CANCELLED').length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
+            </button>
+            <button className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-stone-700">
+              <Search size={20} />
+            </button>
+            
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <div className="absolute top-12 right-0 w-72 bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden z-50">
+                <div className="p-3 border-b border-stone-100 bg-brand-50">
+                  <h3 className="font-bold text-stone-900 text-sm">Thông báo đơn hàng</h3>
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {myOrders.length === 0 ? (
+                    <div className="p-4 text-center text-stone-500 text-xs">Chưa có thông báo nào</div>
+                  ) : (
+                    myOrders.map(order => (
+                      <div key={order._id} className="p-3 border-b border-stone-50 hover:bg-stone-50 transition-colors">
+                        <div className="flex items-start gap-2">
+                          {order.status === 'PENDING' ? <Clock size={16} className="text-brand-500 shrink-0 mt-0.5" /> : <CheckCircle size={16} className="text-green-500 shrink-0 mt-0.5" />}
+                          <div>
+                            <p className="text-xs font-bold text-stone-900 mb-0.5">
+                              Đơn hàng {order.totalAmount.toLocaleString('vi-VN')}₫
+                            </p>
+                            <p className="text-[11px] text-stone-500">
+                              {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 
+                               order.status === 'CONFIRMED' ? 'Tiệm đã xác nhận, đang chuẩn bị' :
+                               order.status === 'DELIVERING' ? 'Đang trên đường giao đến bạn' :
+                               order.status === 'COMPLETED' ? 'Đã giao thành công' : 'Đã hủy'}
+                            </p>
+                            <p className="text-[9px] text-stone-400 mt-1">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Category Tabs */}
@@ -172,33 +224,7 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Order Tracking Banner */}
-      {myOrders.length > 0 && (
-        <div className="px-4 mt-4">
-          <div className="bg-brand-600 rounded-2xl p-4 text-white shadow-md mb-2 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-20">
-              <ShoppingBag size={64} />
-            </div>
-            <h3 className="font-bold text-lg mb-2 relative z-10">Đơn hàng của bạn</h3>
-            <div className="space-y-2 relative z-10">
-              {myOrders.slice(0, 2).map(order => (
-                <div key={order._id} className="flex justify-between items-center bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-                  <div className="flex items-center gap-2">
-                    {order.status === 'PENDING' ? <Clock size={16} className="text-brand-100" /> : <CheckCircle size={16} className="text-green-300" />}
-                    <span className="text-sm font-medium">
-                      {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 'Đang giao / Hoàn thành'}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold">{order.totalAmount.toLocaleString('vi-VN')} ₫</div>
-                    {order.shippingFee > 0 && <div className="text-[10px] text-white/70">Gồm {order.shippingFee.toLocaleString('vi-VN')}₫ ship</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Product List */}
       <div className="px-4 space-y-8 mt-4">
