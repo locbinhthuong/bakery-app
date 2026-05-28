@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductImageSlider from '../components/ProductImageSlider';
 
-function PromoSlider({ promo }) {
+function PromoSlider({ promo, className = "rounded-2xl", autoHeight = false }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = (promo.images && promo.images.length > 0) ? promo.images : (promo.image ? [promo.image] : []);
 
@@ -19,14 +19,17 @@ function PromoSlider({ promo }) {
 
   if (images.length === 0) {
     return (
-      <div className="w-full h-full bg-brand-800 flex items-center justify-center">
+      <div className={`w-full h-full bg-brand-800 flex items-center justify-center ${className}`}>
         <CakeSlice size={48} className="text-brand-200" />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-stone-100 rounded-2xl">
+    <div className={`relative w-full overflow-hidden bg-stone-100 ${autoHeight ? '' : 'h-full'} ${className}`}>
+      {autoHeight && (
+        <img src={images[0]} alt="spacer" className="w-full h-auto invisible block" />
+      )}
       {images.map((img, i) => (
         <div key={i} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${i === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
           <img src={img} alt={`${promo.title} ${i}`} className="w-full h-full object-cover" />
@@ -182,10 +185,10 @@ export default function Home() {
         {adsPromos.length > 0 ? (
           <div className="flex overflow-x-auto gap-4 md:gap-0 snap-x snap-mandatory pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}>
             {adsPromos.map(promo => (
-              <div key={promo._id} className="min-w-full w-full aspect-video md:aspect-[21/9] lg:aspect-[21/7] rounded-2xl md:rounded-none overflow-hidden relative shadow-md snap-center shrink-0">
-                <PromoSlider promo={promo} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-16 lg:p-24 max-w-7xl mx-auto w-full md:px-12">
-                  <div className="flex gap-2">
+              <div key={promo._id} className="min-w-full w-full relative shadow-md snap-center shrink-0">
+                <PromoSlider promo={promo} autoHeight={true} className="rounded-2xl md:rounded-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-16 lg:p-24 max-w-7xl mx-auto w-full md:px-12 pointer-events-none rounded-2xl md:rounded-none">
+                  <div className="flex gap-2 pointer-events-auto">
                     <span className="text-[10px] md:text-xs font-bold bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Quảng Cáo</span>
                   </div>
                   {promo.title && <h2 className="text-white font-serif text-2xl md:text-5xl lg:text-7xl font-bold mb-3 md:mb-6 drop-shadow-lg">{promo.title}</h2>}
