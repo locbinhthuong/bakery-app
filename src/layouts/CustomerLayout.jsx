@@ -431,7 +431,7 @@ export default function CustomerLayout() {
 
 
       {/* Main Content Area */}
-      <div className="min-h-[70vh] w-full md:max-w-md md:mx-auto md:mt-[100px] md:mb-16 md:shadow-2xl md:rounded-[40px] md:border-8 md:border-stone-100 bg-white relative md:overflow-hidden md:min-h-[800px]">
+      <div className="min-h-[70vh] w-full max-w-7xl mx-auto md:pt-[104px] md:px-12">
         <Outlet context={{ products, promos, categories, addToCart, customer, updateCustomer, isCheckout, setIsCheckout, cart, settings }} />
       </div>
 

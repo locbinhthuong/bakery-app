@@ -34,13 +34,13 @@ export default function Promos() {
   });
 
   return (
-    <div className="pb-24 bg-brand-50 min-h-screen">
+    <div className="pb-24 md:pb-12 bg-brand-50 md:bg-transparent min-h-screen">
       {/* Header */}
-      <div className="pt-12 pb-4 px-4 bg-white shadow-sm sticky top-0 z-20">
-        <h1 className="text-xl font-serif font-bold text-stone-900 text-center mb-6">Ưu đãi của bạn</h1>
+      <div className="pt-12 pb-4 px-4 bg-white shadow-sm sticky top-0 z-20 md:static md:pt-0 md:bg-transparent md:border-none md:shadow-none md:mb-6 md:px-0">
+        <h1 className="text-xl font-serif font-bold text-stone-900 text-center mb-6 md:hidden">Ưu đãi của bạn</h1>
         
         {/* Main Tabs */}
-        <div className="flex border-b border-brand-200">
+        <div className="flex border-b border-brand-200 md:max-w-md md:mx-auto">
           <button 
             onClick={() => setActiveTab('kha_dung')}
             className={`flex-1 pb-3 text-center font-bold text-sm transition-colors ${activeTab === 'kha_dung' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-brand-800'}`}
@@ -56,7 +56,7 @@ export default function Promos() {
         </div>
 
         {/* Sub Tabs */}
-        <div className="flex gap-4 mt-4">
+        <div className="flex gap-4 mt-4 md:max-w-md md:mx-auto">
           <button 
             onClick={() => setActiveSubTab('uu_dai')}
             className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-colors border ${activeSubTab === 'uu_dai' ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-800 border-brand-500'}`}
@@ -72,9 +72,9 @@ export default function Promos() {
         </div>
       </div>
 
-      <div className="px-4 mt-6">
+      <div className="px-4 md:px-0 mt-6">
         {/* Input Code */}
-        <div className="flex gap-2 bg-brand-200/50 p-2 rounded-2xl mb-8">
+        <div className="flex gap-2 bg-brand-200/50 p-2 rounded-2xl mb-8 md:max-w-md md:mx-auto">
           <input 
             type="text" 
             placeholder="Nhập mã ưu đãi..."
@@ -91,13 +91,13 @@ export default function Promos() {
         <h2 className="text-lg font-serif font-bold text-stone-900 mb-4">{activeSubTab === 'doi_diem' ? 'Đổi điểm lấy quà' : 'Mã ưu đãi'}</h2>
         
         {activeSubTab === 'doi_diem' && (
-          <div className="mb-4 bg-brand-100/50 p-4 rounded-xl border border-brand-200 flex justify-between items-center">
+          <div className="mb-4 bg-brand-100/50 p-4 rounded-xl border border-brand-200 flex justify-between items-center md:max-w-md md:mx-auto">
             <span className="font-bold text-stone-700">Điểm của bạn:</span>
             <span className="text-xl font-bold text-brand-600 flex items-center gap-1"><Star size={20}/> {customer?.points || 0}</span>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
           {(activeSubTab === 'doi_diem' ? pointPromos : (activeTab === 'kha_dung' ? activePromos : inactivePromos)).map(promo => {
             const isInactive = activeSubTab !== 'doi_diem' && activeTab === 'khong_kha_dung';
             let reason = '';

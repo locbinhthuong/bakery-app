@@ -251,111 +251,117 @@ export default function Profile() {
   }
 
   return (
-    <div className="pb-24 bg-brand-50 min-h-screen">
+    <div className="pb-24 md:pb-12 bg-brand-50 md:bg-transparent min-h-screen relative">
       {/* Background Graphic */}
-      <div className="h-40 bg-gradient-to-b from-brand-600/20 to-brand-50 rounded-b-[40px] absolute top-0 w-full z-0"></div>
+      <div className="h-40 md:h-64 bg-gradient-to-b from-brand-600/20 to-brand-50 md:to-transparent rounded-b-[40px] md:rounded-3xl md:mx-4 absolute top-0 w-full md:w-[calc(100%-2rem)] z-0"></div>
 
-      <div className="px-4 pt-12 relative z-10">
-        {/* Membership Card */}
-        <div className="w-full bg-gradient-to-br from-teal-50/90 via-blue-50/80 to-brand-200 rounded-3xl p-6 shadow-sm border border-white/50 backdrop-blur-sm mb-8">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2">{customer.name}</h2>
-              <div className="inline-flex items-center gap-1.5 bg-brand-500/20 px-3 py-1 rounded-full text-brand-800 font-bold text-sm border border-brand-200">
-                <span>⭐</span> {customer.points || 0} điểm khả dụng
+      <div className="px-4 md:px-0 pt-12 md:pt-8 relative z-10 max-w-5xl mx-auto md:grid md:grid-cols-5 md:gap-8 md:items-start">
+        {/* Left Column (Card) */}
+        <div className="md:col-span-2">
+          {/* Membership Card */}
+          <div className="w-full bg-gradient-to-br from-teal-50/90 via-blue-50/80 to-brand-200 rounded-3xl p-6 shadow-sm border border-white/50 backdrop-blur-sm mb-8 md:mb-0">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-stone-900 mb-2">{customer.name}</h2>
+                <div className="inline-flex items-center gap-1.5 bg-brand-500/20 px-3 py-1 rounded-full text-brand-800 font-bold text-sm border border-brand-200">
+                  <span>⭐</span> {customer.points || 0} điểm khả dụng
+                </div>
+              </div>
+              <div className="w-10 h-10 bg-white/50 rounded-full flex items-center justify-center">
+                <QrCodeIcon />
               </div>
             </div>
-            <div className="w-10 h-10 bg-white/50 rounded-full flex items-center justify-center">
-              <QrCodeIcon />
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-2xl font-serif text-stone-800 mb-2">{getMembershipTier(customer.totalPoints || 0)}</h3>
             
-            {(() => {
-              const nextTier = getNextTier(customer.totalPoints || 0);
-              if (nextTier) {
-                const currentPoints = customer.totalPoints || 0;
-                const pointsNeeded = nextTier.minPoints;
-                const progress = Math.min(100, (currentPoints / pointsNeeded) * 100);
-                return (
-                  <>
-                    <div className="w-full h-1 bg-brand-900/10 rounded-full mb-3">
-                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${progress}%` }}></div>
-                    </div>
-                    <p className="text-stone-700 text-xs font-medium mb-1">Tích luỹ thêm {pointsNeeded - currentPoints} điểm để lên hạng {nextTier.name}</p>
-                  </>
-                );
-              } else {
-                return (
-                  <>
-                    <div className="w-full h-1 bg-brand-900/10 rounded-full mb-3">
-                      <div className="h-full bg-brand-500 rounded-full" style={{ width: '100%' }}></div>
-                    </div>
-                    <p className="text-stone-700 text-xs font-medium mb-1">Bạn đã đạt hạng cao nhất!</p>
-                  </>
-                );
-              }
-            })()}
+            <div>
+              <h3 className="text-2xl font-serif text-stone-800 mb-2">{getMembershipTier(customer.totalPoints || 0)}</h3>
+              
+              {(() => {
+                const nextTier = getNextTier(customer.totalPoints || 0);
+                if (nextTier) {
+                  const currentPoints = customer.totalPoints || 0;
+                  const pointsNeeded = nextTier.minPoints;
+                  const progress = Math.min(100, (currentPoints / pointsNeeded) * 100);
+                  return (
+                    <>
+                      <div className="w-full h-1 bg-brand-900/10 rounded-full mb-3">
+                        <div className="h-full bg-brand-500 rounded-full" style={{ width: `${progress}%` }}></div>
+                      </div>
+                      <p className="text-stone-700 text-xs font-medium mb-1">Tích luỹ thêm {pointsNeeded - currentPoints} điểm để lên hạng {nextTier.name}</p>
+                    </>
+                  );
+                } else {
+                  return (
+                    <>
+                      <div className="w-full h-1 bg-brand-900/10 rounded-full mb-3">
+                        <div className="h-full bg-brand-500 rounded-full" style={{ width: '100%' }}></div>
+                      </div>
+                      <p className="text-stone-700 text-xs font-medium mb-1">Bạn đã đạt hạng cao nhất!</p>
+                    </>
+                  );
+                }
+              })()}
 
-            <p className="text-brand-700 text-xs font-bold flex items-center mt-2">Tìm hiểu về quyền lợi thẻ <Info className="w-3 h-3 ml-1"/></p>
+              <p className="text-brand-700 text-xs font-bold flex items-center mt-2 cursor-pointer hover:underline">Tìm hiểu về quyền lợi thẻ <Info className="w-3 h-3 ml-1"/></p>
+            </div>
           </div>
         </div>
 
-        {/* Tài khoản */}
-        <div className="mb-8 mt-4">
-          <h3 className="font-bold text-stone-900 text-lg mb-4 px-1">Tài khoản</h3>
-          <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-100/50">
-            <button onClick={handleOpenEdit} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
-              <div className="flex items-center gap-3 text-brand-800 font-bold">
-                <UserCircle size={22} className="text-brand-600"/>
-                Chỉnh sửa thông tin
-              </div>
-              <ChevronRight size={20} className="text-brand-300"/>
-            </button>
-            <Link to="/orders" className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 transition-colors">
-              <div className="flex items-center gap-3 text-brand-800 font-bold">
-                <Clock size={22} className="text-brand-600"/>
-                Lịch sử đặt hàng
-              </div>
-              <ChevronRight size={20} className="text-brand-300"/>
-            </Link>
+        {/* Right Column (Menus) */}
+        <div className="md:col-span-3 space-y-6 md:space-y-8 mt-4 md:mt-0">
+          {/* Tài khoản */}
+          <div>
+            <h3 className="font-bold text-stone-900 text-lg mb-4 px-1">Tài khoản</h3>
+            <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-100/50 md:shadow-md">
+              <button onClick={handleOpenEdit} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+                <div className="flex items-center gap-3 text-brand-800 font-bold">
+                  <UserCircle size={22} className="text-brand-600"/>
+                  Chỉnh sửa thông tin
+                </div>
+                <ChevronRight size={20} className="text-brand-300"/>
+              </button>
+              <Link to="/orders" className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 transition-colors">
+                <div className="flex items-center gap-3 text-brand-800 font-bold">
+                  <Clock size={22} className="text-brand-600"/>
+                  Lịch sử đặt hàng
+                </div>
+                <ChevronRight size={20} className="text-brand-300"/>
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Khác */}
-        <div className="mb-4">
-          <h3 className="font-bold text-brand-900 text-lg mb-4 px-1">Khác</h3>
-          <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-100/50">
-            <button onClick={() => alert('Về chúng tôi đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
-              <div className="flex items-center gap-3 text-brand-800 font-bold">
-                <Info size={22} className="text-brand-600"/>
-                Về chúng tôi
-              </div>
-              <ChevronRight size={20} className="text-brand-300"/>
-            </button>
-            <button onClick={() => alert('Điều khoản sử dụng đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
-              <div className="flex items-center gap-3 text-brand-800 font-bold">
-                <FileText size={22} className="text-brand-600"/>
-                Điều khoản sử dụng
-              </div>
-              <ChevronRight size={20} className="text-brand-300"/>
-            </button>
-            <button onClick={() => alert('Chính sách bảo mật đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
-              <div className="flex items-center gap-3 text-brand-800 font-bold">
-                <Shield size={22} className="text-brand-600"/>
-                Chính sách bảo mật
-              </div>
-              <ChevronRight size={20} className="text-brand-300"/>
-            </button>
-            <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 transition-colors">
-              <div className="flex items-center gap-3 text-brand-800 font-bold">
-                <LogOut size={22} className="text-brand-600"/>
-                Đăng xuất
-              </div>
-              <ChevronRight size={20} className="text-brand-300"/>
-            </button>
+          {/* Khác */}
+          <div>
+            <h3 className="font-bold text-brand-900 text-lg mb-4 px-1">Khác</h3>
+            <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-brand-100/50 md:shadow-md">
+              <button onClick={() => alert('Về chúng tôi đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+                <div className="flex items-center gap-3 text-brand-800 font-bold">
+                  <Info size={22} className="text-brand-600"/>
+                  Về chúng tôi
+                </div>
+                <ChevronRight size={20} className="text-brand-300"/>
+              </button>
+              <button onClick={() => alert('Điều khoản sử dụng đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+                <div className="flex items-center gap-3 text-brand-800 font-bold">
+                  <FileText size={22} className="text-brand-600"/>
+                  Điều khoản sử dụng
+                </div>
+                <ChevronRight size={20} className="text-brand-300"/>
+              </button>
+              <button onClick={() => alert('Chính sách bảo mật đang được cập nhật!')} className="w-full flex items-center justify-between p-4 bg-white hover:bg-brand-50 border-b border-brand-50 transition-colors">
+                <div className="flex items-center gap-3 text-brand-800 font-bold">
+                  <Shield size={22} className="text-brand-600"/>
+                  Chính sách bảo mật
+                </div>
+                <ChevronRight size={20} className="text-brand-300"/>
+              </button>
+              <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 bg-white hover:bg-red-50 transition-colors group">
+                <div className="flex items-center gap-3 text-red-600 font-bold group-hover:text-red-700">
+                  <LogOut size={22} className="text-red-500 group-hover:text-red-600"/>
+                  Đăng xuất
+                </div>
+                <ChevronRight size={20} className="text-red-300 group-hover:text-red-400"/>
+              </button>
+            </div>
           </div>
         </div>
       </div>

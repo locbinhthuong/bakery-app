@@ -155,7 +155,7 @@ export default function Menu() {
   return (
     <div className="pb-24 bg-brand-50 min-h-screen">
       {/* Header */}
-      <div className="sticky top-0 bg-brand-50 z-30 pt-12 pb-2 px-4 shadow-sm border-b border-brand-100">
+      <div className="sticky top-0 bg-brand-50 z-30 pt-12 pb-2 px-4 shadow-sm border-b border-brand-100 md:static md:pt-0 md:bg-transparent md:border-none md:shadow-none md:mb-6 md:px-0">
         <div className="flex justify-between items-center mb-4 min-h-[40px]">
           {isSearching ? (
             <div className="flex-1 flex items-center gap-2">
@@ -165,7 +165,7 @@ export default function Menu() {
                 placeholder="Tìm kiếm bánh..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="flex-1 px-4 py-2 bg-white rounded-full border border-brand-200 outline-none focus:border-brand-500 shadow-inner text-sm"
+                className="flex-1 px-4 py-2 bg-white rounded-full border border-brand-200 outline-none focus:border-brand-500 shadow-inner text-sm md:max-w-md md:ml-auto"
               />
               <button onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="w-10 h-10 flex items-center justify-center text-stone-500 shrink-0">
                 Đóng
@@ -173,8 +173,8 @@ export default function Menu() {
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-serif font-bold text-stone-900">Thực đơn</h1>
-              <div className="flex items-center gap-2 relative">
+              <h1 className="text-2xl font-serif font-bold text-stone-900 md:hidden">Thực đơn</h1>
+              <div className="flex items-center gap-2 relative md:ml-auto">
                 <button 
                   onClick={() => {
                     if (!customer) {
@@ -184,12 +184,12 @@ export default function Menu() {
                     }
                     setShowNotifications(!showNotifications);
                   }}
-                  className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative"
+                  className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-stone-600 shadow-sm border border-brand-50 relative hover:bg-stone-50 transition-colors"
                 >
                   <Bell size={20} />
                   {myOrders.filter(o => o.status !== 'CANCELLED').length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
                 </button>
-                <button onClick={() => setIsSearching(true)} className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-stone-700">
+                <button onClick={() => setIsSearching(true)} className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-stone-700 hover:bg-brand-200 transition-colors">
                   <Search size={20} />
                 </button>
                 <button 
@@ -202,7 +202,7 @@ export default function Menu() {
                     }
                     setIsCheckout(true);
                   }} 
-                  className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white relative shadow-sm"
+                  className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white relative shadow-sm hover:bg-brand-700 transition-colors md:hidden"
                 >
                   <ShoppingBag size={20} />
                   {cart && cart.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-brand-600 font-bold text-[10px] rounded-full flex items-center justify-center border border-brand-600 shadow-sm">{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>}
@@ -210,23 +210,23 @@ export default function Menu() {
 
                 {/* Notification Dropdown */}
                 {showNotifications && (
-                  <div className="absolute top-12 right-0 w-72 bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden z-50">
+                  <div className="absolute top-12 right-0 w-80 bg-white rounded-2xl shadow-2xl border border-stone-100 overflow-hidden z-50">
                     <div className="p-3 border-b border-stone-100 bg-brand-50">
                       <h3 className="font-bold text-stone-900 text-sm">Thông báo đơn hàng</h3>
                     </div>
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-80 overflow-y-auto">
                       {myOrders.length === 0 ? (
-                        <div className="p-4 text-center text-stone-500 text-xs">Chưa có thông báo nào</div>
+                        <div className="p-6 text-center text-stone-500 text-sm">Chưa có thông báo nào</div>
                       ) : (
                         myOrders.map(order => (
-                          <div key={order._id} className="p-3 border-b border-stone-50 hover:bg-stone-50 transition-colors">
-                            <div className="flex items-start gap-2">
-                              {order.status === 'PENDING' ? <Clock size={16} className="text-brand-500 shrink-0 mt-0.5" /> : <CheckCircle size={16} className="text-green-500 shrink-0 mt-0.5" />}
+                          <div key={order._id} className="p-4 border-b border-stone-50 hover:bg-stone-50 transition-colors cursor-pointer" onClick={() => navigate('/orders')}>
+                            <div className="flex items-start gap-3">
+                              {order.status === 'PENDING' ? <Clock size={18} className="text-brand-500 shrink-0 mt-0.5" /> : <CheckCircle size={18} className="text-green-500 shrink-0 mt-0.5" />}
                               <div>
-                                <p className="text-xs font-bold text-stone-900 mb-0.5">
+                                <p className="text-sm font-bold text-stone-900 mb-0.5">
                                   Đơn hàng {order.totalAmount.toLocaleString('vi-VN')}₫
                                 </p>
-                                <p className="text-[11px] text-stone-500">
+                                <p className="text-xs text-stone-500">
                                   {order.status === 'PENDING' ? 'Đang chờ tiệm xác nhận' : 
                                    order.status === 'CONFIRMED' ? 'Tiệm đã xác nhận, đang chuẩn bị' :
                                    order.status === 'DELIVERING' ? 'Đang trên đường giao đến bạn' :
@@ -247,12 +247,12 @@ export default function Menu() {
         </div>
         
         {/* Category Tabs */}
-        <div className="flex overflow-x-auto gap-2 pb-2" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex overflow-x-auto gap-2 pb-2 md:gap-3" style={{ scrollbarWidth: 'none' }}>
           {categoryNames.map(cat => (
             <button 
               key={cat}
               onClick={() => scrollToCategory(cat)}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-bold transition-colors border ${activeTab === cat ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-stone-600 border-stone-200'}`}
+              className={`whitespace-nowrap px-4 md:px-6 py-2 md:py-2.5 rounded-xl md:rounded-full text-sm md:text-base font-bold transition-all border ${activeTab === cat ? 'bg-brand-500 text-white border-brand-500 shadow-md' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'}`}
             >
               {cat}
             </button>
@@ -263,39 +263,41 @@ export default function Menu() {
 
 
       {/* Product List */}
-      <div className="px-4 space-y-8 mt-4">
+      <div className="px-4 md:px-0 space-y-8 mt-4 md:mt-8">
         {categoryNames.map(cat => (
-          <div key={cat} id={`cat-${cat}`} className="pt-2">
-            <h2 className="text-xl font-serif font-bold text-stone-900 mb-4">{cat}</h2>
+          <div key={cat} id={`cat-${cat}`} className="pt-2 md:pt-4">
+            <h2 className="text-xl md:text-3xl font-serif font-bold text-stone-900 mb-4 md:mb-6">{cat}</h2>
             
-            <div className="space-y-3">
+            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-6">
               {productGroups[cat].map(product => (
                 <div 
                   key={product._id} 
-                  className="bg-white p-3 rounded-2xl shadow-sm border border-brand-100/50 flex gap-4 relative overflow-hidden cursor-pointer"
+                  className="bg-white p-3 md:p-4 rounded-2xl md:rounded-3xl shadow-sm md:shadow-md md:hover:shadow-xl border border-brand-100/50 flex flex-row md:flex-col gap-4 relative overflow-hidden cursor-pointer transition-all duration-300 md:hover:-translate-y-1"
                   onClick={() => setSelectedProduct(product)}
                 >
-                  <div className="absolute top-3 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-20">MỚI</div>
+                  <div className="absolute top-3 left-0 bg-brand-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-md z-20 shadow-sm">MỚI</div>
                   
-                  <div className="w-24 h-24 bg-brand-50 rounded-xl overflow-hidden shrink-0 relative group">
+                  <div className="w-24 h-24 md:w-full md:aspect-[4/3] md:h-auto bg-brand-50 rounded-xl md:rounded-2xl overflow-hidden shrink-0 relative group">
                     <ProductImageSlider images={product.images} fallbackImage={product.image} productName={product.name} />
                   </div>
                   
-                  <div className="flex-1 flex flex-col justify-between py-1">
+                  <div className="flex-1 flex flex-col justify-between py-1 md:py-2">
                     <div>
-                      <h3 className="font-bold text-stone-900 text-base leading-snug line-clamp-2 mb-1">{product.name}</h3>
-                      <p className="text-xs text-stone-500 line-clamp-1">{product.description}</p>
+                      <h3 className="font-bold text-stone-900 text-base md:text-lg leading-snug line-clamp-2 md:line-clamp-1 mb-1">{product.name}</h3>
+                      <p className="text-xs text-stone-500 line-clamp-1 md:line-clamp-2 md:mb-3">{product.description}</p>
                     </div>
-                    <div className="text-brand-600 font-bold text-sm">
+                    <div className="text-brand-600 font-bold text-sm md:text-lg mt-auto">
                       {product.price.toLocaleString('vi-VN')} ₫
                     </div>
                   </div>
 
                   <button 
                     onClick={(e) => handleAddToCart(e, product)}
-                    className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-xs shadow-sm hover:bg-brand-500 hover:text-white transition-colors z-20"
+                    className="absolute bottom-3 right-3 md:relative md:bottom-auto md:right-auto md:w-full md:mt-2 px-3 md:px-4 py-1.5 md:py-2.5 rounded-full md:rounded-xl bg-brand-50 md:bg-brand-600 text-brand-600 md:text-white flex items-center justify-center font-bold text-xs md:text-sm shadow-sm hover:bg-brand-500 md:hover:bg-brand-700 hover:text-white transition-colors z-20"
                   >
-                    <Plus size={14} strokeWidth={3} className="mr-1" /> Thêm
+                    <Plus size={14} strokeWidth={3} className="mr-1 md:hidden" />
+                    <ShoppingBag size={16} strokeWidth={2.5} className="mr-2 hidden md:block" />
+                    Thêm <span className="hidden md:inline ml-1">vào giỏ</span>
                   </button>
                 </div>
               ))}
