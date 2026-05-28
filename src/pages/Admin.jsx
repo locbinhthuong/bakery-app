@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { io } from 'socket.io-client';
 import CropperModal from '../components/CropperModal';
+import DashboardStats from '../components/DashboardStats';
 
 // Fix leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -59,12 +60,14 @@ export default function Admin() {
   const fetchData = async () => {
     try {
       if (activeTab === 'home') {
-        const [resPromos, resProducts] = await Promise.all([
+        const [resPromos, resProducts, resOrders] = await Promise.all([
           axios.get(`${BACKEND_URL}/admin/promos`),
-          axios.get(`${BACKEND_URL}/admin/products`)
+          axios.get(`${BACKEND_URL}/admin/products`),
+          axios.get(`${BACKEND_URL}/admin/orders`)
         ]);
         setPromos(resPromos.data.data);
         setProducts(resProducts.data.data);
+        setOrders(resOrders.data.data);
       } else if (activeTab === 'menu') {
         const [resProducts, resCats] = await Promise.all([
           axios.get(`${BACKEND_URL}/admin/products`),
@@ -517,6 +520,9 @@ export default function Admin() {
           {/* ===================== HOME TAB (Promos + Best Sellers) ===================== */}
           {activeTab === 'home' && (
             <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto">
+              {/* Revenue Stats */}
+              <DashboardStats orders={orders} />
+
               {/* Best Sellers Config */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200/60">
                 <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2"><Star size={20} className="text-brand-600" /> Quản lý Món Bán Chạy (Hiển thị trang chủ)</h3>
