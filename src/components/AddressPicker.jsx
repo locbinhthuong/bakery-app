@@ -115,7 +115,12 @@ export default function AddressPicker({
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const res = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&countrycodes=vn&limit=5`);
-        setSuggestions(res.data || []);
+        const data = res.data || [];
+        setSuggestions(data);
+        if (data.length > 0) {
+          // Gợi ý đồng thời định vị trên bản đồ luôn (Preview)
+          setLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -151,14 +156,14 @@ export default function AddressPicker({
   };
 
   return (
-    <div className="relative w-full" ref={containerRef}>
+    <div className={`relative w-full flex flex-col bg-white rounded-xl transition-all ${isExpanded ? 'border border-brand-500 shadow-sm' : 'border border-stone-200'}`} ref={containerRef}>
       {/* Input Field */}
-      <div className={`relative flex items-center bg-white border ${isExpanded ? 'border-brand-500 rounded-t-xl' : 'border-brand-200 rounded-xl'} transition-colors overflow-hidden`}>
+      <div className="relative flex items-center w-full">
         <input 
           type="text" 
           placeholder={placeholder} 
           required={required}
-          className="w-full px-4 py-3 outline-none font-medium text-stone-800"
+          className="w-full px-4 py-3 outline-none font-medium text-stone-800 bg-transparent"
           value={address} 
           onChange={handleInputChange}
           onFocus={() => setIsExpanded(true)}
@@ -167,34 +172,34 @@ export default function AddressPicker({
         <button 
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="p-3 text-stone-400 hover:text-brand-600 transition-colors bg-white z-10"
+          className="p-3 text-stone-400 hover:text-brand-600 transition-colors bg-transparent z-10"
         >
-          {isExpanded ? <ChevronUp size={20} /> : <MapPin size={20} />}
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>
       </div>
 
-      {/* Expanded Accordion Area */}
+      {/* Expanded Accordion Area (Inline) */}
       {isExpanded && (
-        <div className="absolute top-full left-0 w-full z-50 bg-white border-x border-b border-brand-200 rounded-b-xl shadow-xl overflow-hidden flex flex-col max-h-[70vh]">
+        <div className="w-full flex flex-col border-t border-brand-100 overflow-hidden rounded-b-xl">
           
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-            <div className="max-h-48 overflow-y-auto bg-stone-50 border-b border-stone-200">
+            <div className="max-h-48 overflow-y-auto bg-white border-b border-stone-100">
               {suggestions.map((sug, i) => (
                 <div 
                   key={i} 
-                  className="px-4 py-2 text-sm border-b border-stone-100 cursor-pointer hover:bg-brand-50 flex items-start gap-2 text-stone-700"
+                  className="px-4 py-3 text-sm border-b border-stone-50 cursor-pointer hover:bg-brand-50 flex items-start gap-3 text-stone-700 transition-colors"
                   onClick={() => handleSelectSuggestion(sug)}
                 >
-                  <MapPin size={16} className="mt-0.5 text-stone-400 shrink-0" />
-                  <span className="line-clamp-2">{sug.display_name}</span>
+                  <MapPin size={18} className="mt-0.5 text-stone-400 shrink-0" />
+                  <span className="line-clamp-2 leading-relaxed">{sug.display_name}</span>
                 </div>
               ))}
             </div>
           )}
 
           {/* Map Area */}
-          <div className="h-[250px] sm:h-[300px] w-full relative z-0">
+          <div className="h-[250px] w-full relative z-0">
             <MapContainer 
               center={(location && location.lat) ? [location.lat, location.lng] : defaultCenter} 
               zoom={15} 
@@ -214,34 +219,21 @@ export default function AddressPicker({
               <button 
                 type="button"
                 onClick={handleGetCurrentLocation}
-                className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-brand-600 hover:bg-brand-50"
+                className="w-10 h-10 bg-white rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] flex items-center justify-center text-brand-600 hover:bg-brand-50 hover:scale-105 transition-all"
                 title="Vị trí của tôi"
               >
-                <Navigation size={20} />
+                <Navigation size={20} strokeWidth={2.5} />
               </button>
             </div>
-            <div className="absolute top-2 left-2 right-16 z-[1000] pointer-events-none">
-              <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-medium text-stone-600 shadow-sm inline-block">
+            <div className="absolute top-3 left-3 right-16 z-[1000] pointer-events-none">
+              <div className="bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg text-[11px] sm:text-xs font-medium text-stone-700 shadow-sm inline-block border border-stone-100">
                 Kéo thả ghim để chọn chính xác điểm giao
               </div>
             </div>
           </div>
-
-          {/* Footer Action */}
-          <div className="p-3 bg-white flex justify-between items-center gap-3">
-            <div className="flex-1 text-xs text-stone-500 font-medium">
-              {location ? <span className="text-brand-600 flex items-center gap-1"><Check size={14}/> Đã ghim vị trí</span> : 'Chưa ghim vị trí trên bản đồ'}
-            </div>
-            <button 
-              type="button"
-              onClick={() => setIsExpanded(false)}
-              className="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 shadow-sm shrink-0"
-            >
-              Xác nhận
-            </button>
-          </div>
         </div>
       )}
+
     </div>
   );
 }
