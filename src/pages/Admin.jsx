@@ -46,6 +46,7 @@ export default function Admin() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [editingPromo, setEditingPromo] = useState(null);
+  const [promoType, setPromoType] = useState('ORDER');
 
   // States for Sub-tabs in Menu
   const [menuSubTab, setMenuSubTab] = useState('products'); // 'products' or 'categories'
@@ -643,15 +644,33 @@ export default function Admin() {
                     </div>
                     <textarea name="content" rows="2" placeholder="Nội dung mô tả (tuỳ chọn)" className="w-full px-4 py-2 bg-stone-50 border rounded-lg outline-none resize-none"></textarea>
                     
+                    <div className="flex gap-4 mb-4">
+                      <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded-xl cursor-pointer font-bold ${promoType === 'ORDER' ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}>
+                        <input type="radio" name="promoCategory" value="ORDER" checked={promoType === 'ORDER'} onChange={() => setPromoType('ORDER')} className="hidden" />
+                        Mã Giảm Đơn Hàng
+                      </label>
+                      <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded-xl cursor-pointer font-bold ${promoType === 'SHIPPING' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'}`}>
+                        <input type="radio" name="promoCategory" value="SHIPPING" checked={promoType === 'SHIPPING'} onChange={() => setPromoType('SHIPPING')} className="hidden" />
+                        Mã Giảm Vận Chuyển
+                      </label>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
-                        <option value="FIXED">Giảm số tiền cố định</option>
-                        <option value="PERCENT">Giảm theo phần trăm</option>
-                        <option value="FREESHIP">Miễn phí vận chuyển (100%)</option>
-                        <option value="FIXED_SHIPPING">Giảm tiền Phí vận chuyển</option>
-                        <option value="PERCENT_SHIPPING">Giảm % Phí vận chuyển</option>
+                      <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none font-medium">
+                        {promoType === 'ORDER' ? (
+                          <>
+                            <option value="PERCENT">Giảm theo phần trăm (%)</option>
+                            <option value="FIXED">Giảm số tiền cố định (VNĐ)</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="FREESHIP">Miễn phí vận chuyển (100%)</option>
+                            <option value="PERCENT_SHIPPING">Giảm % Phí vận chuyển</option>
+                            <option value="FIXED_SHIPPING">Giảm tiền Phí vận chuyển</option>
+                          </>
+                        )}
                       </select>
-                      <input name="discountValue" type="number" placeholder="Mức giảm (VD: 20000 hoặc 15)" required className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
+                      <input name="discountValue" type="number" placeholder={promoType === 'SHIPPING' ? "Mức giảm (Nhập 0 nếu chọn Freeship)" : "Mức giảm (VD: 20000 hoặc 15)"} className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
                     </div>
 
                     <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg space-y-4">
