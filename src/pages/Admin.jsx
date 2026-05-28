@@ -647,7 +647,9 @@ export default function Admin() {
                       <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
                         <option value="FIXED">Giảm số tiền cố định</option>
                         <option value="PERCENT">Giảm theo phần trăm</option>
-                        <option value="FREESHIP">Miễn phí vận chuyển</option>
+                        <option value="FREESHIP">Miễn phí vận chuyển (100%)</option>
+                        <option value="FIXED_SHIPPING">Giảm tiền Phí vận chuyển</option>
+                        <option value="PERCENT_SHIPPING">Giảm % Phí vận chuyển</option>
                       </select>
                       <input name="discountValue" type="number" placeholder="Mức giảm (VD: 20000 hoặc 15)" required className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
                     </div>
@@ -698,7 +700,7 @@ export default function Admin() {
                             {promo.code} - {promo.title}
                             {promo.pointsCost > 0 && <span className="ml-2 text-xs bg-brand-500 text-white px-2 py-0.5 rounded-full">{promo.pointsCost} điểm</span>}
                           </div>
-                          <div className="text-sm text-stone-600">Giảm: {promo.discountValue}{promo.discountType==='PERCENT'?'%':'đ'} {promo.minOrderValue>0 ? `(Đơn từ ${promo.minOrderValue.toLocaleString('vi-VN')})`:''}</div>
+                          <div className="text-sm text-stone-600">Giảm: {promo.discountType === 'FREESHIP' ? '100% Phí ship' : `${promo.discountValue}${promo.discountType.includes('PERCENT')?'%':'đ'}`} {promo.minOrderValue>0 ? `(Đơn từ ${promo.minOrderValue.toLocaleString('vi-VN')})`:''}</div>
                         </div>
                         <div className="flex gap-2">
                           <button onClick={() => setEditingPromo(promo)} className="p-2 text-blue-500 hover:bg-blue-100 rounded-lg"><Edit2 size={18} /></button>
