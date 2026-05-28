@@ -180,16 +180,16 @@ export default function Home() {
       {/* Dynamic Ads Slider */}
       <div className="px-4 md:px-0 mb-6 md:mb-12 mt-4 md:mt-0">
         {adsPromos.length > 0 ? (
-          <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-0 snap-x snap-mandatory pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex overflow-x-auto gap-4 md:gap-0 snap-x snap-mandatory pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}>
             {adsPromos.map(promo => (
-              <div key={promo._id} className="min-w-full md:min-w-0 w-full aspect-video rounded-2xl md:rounded-none overflow-hidden relative shadow-md hover:shadow-lg transition-shadow snap-center shrink-0">
+              <div key={promo._id} className="min-w-full w-full aspect-video md:aspect-[21/9] lg:aspect-[21/7] rounded-2xl md:rounded-none overflow-hidden relative shadow-md snap-center shrink-0">
                 <PromoSlider promo={promo} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-12">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-16 lg:p-24 max-w-7xl mx-auto w-full md:px-12">
                   <div className="flex gap-2">
                     <span className="text-[10px] md:text-xs font-bold bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Quảng Cáo</span>
                   </div>
-                  {promo.title && <h2 className="text-white font-serif text-2xl md:text-4xl lg:text-5xl font-bold mb-2 leading-tight drop-shadow-md">{promo.title}</h2>}
-                  {promo.content && <p className="text-stone-100 text-sm md:text-lg font-medium line-clamp-2 md:line-clamp-3 drop-shadow-md max-w-3xl">{promo.content}</p>}
+                  {promo.title && <h2 className="text-white font-serif text-2xl md:text-5xl lg:text-7xl font-bold mb-3 md:mb-6 drop-shadow-lg">{promo.title}</h2>}
+                  {promo.content && <p className="text-stone-100 text-sm md:text-xl lg:text-3xl font-medium line-clamp-2 md:line-clamp-3 drop-shadow-md max-w-3xl">{promo.content}</p>}
                 </div>
               </div>
             ))}
