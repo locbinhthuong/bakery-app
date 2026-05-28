@@ -283,6 +283,8 @@ export default function CustomerLayout() {
       actualFreeshipAmount = (previewShippingFee * appliedFreeshipPromo.discountValue) / 100;
     } else if (appliedFreeshipPromo.discountType === 'FIXED_SHIPPING') {
       actualFreeshipAmount = appliedFreeshipPromo.discountValue;
+    } else if (appliedFreeshipPromo.discountType === 'FREESHIP') {
+      actualFreeshipAmount = previewShippingFee;
     } else {
       actualFreeshipAmount = appliedFreeshipPromo.discountAmount;
     }
