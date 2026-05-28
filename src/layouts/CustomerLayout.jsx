@@ -94,6 +94,8 @@ export default function CustomerLayout() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [tempPromoCode, setTempPromoCode] = useState('');
 
   const handleMapSearch = async (e) => {
     e.preventDefault();
@@ -276,7 +278,10 @@ export default function CustomerLayout() {
 
   const applyDiscount = async (codeOverride) => {
     const codeToUse = typeof codeOverride === 'string' ? codeOverride : discountCode;
-    if (!codeToUse) return alert('Vui lòng nhập mã ưu đãi');
+    if (!codeToUse) {
+      alert('Vui lòng nhập mã ưu đãi');
+      return false;
+    }
     try {
       let customerPhone = null;
       const savedCustomer = localStorage.getItem('bakery_customer');
@@ -294,9 +299,11 @@ export default function CustomerLayout() {
       if (typeof codeOverride === 'string') {
         setDiscountCode(codeOverride); // Also update the input
       }
+      return true;
     } catch (err) {
       alert(err.response?.data?.message || 'Mã ưu đãi không hợp lệ');
       setAppliedPromo(null);
+      return false;
     }
   };
 
@@ -506,53 +513,20 @@ export default function CustomerLayout() {
               {cart.length > 0 && (
                 <form onSubmit={handleCheckout} className="space-y-4 pt-4">
                   <h3 className="font-bold text-brand-900 mb-2">Ưu đãi</h3>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" placeholder="Nhập mã..."
-                      className="flex-1 px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium uppercase placeholder-brand-300"
-                      value={discountCode} onChange={e => setDiscountCode(e.target.value)}
-                    />
-                    <button type="button" onClick={applyDiscount} className="px-6 bg-brand-500 text-white font-bold rounded-xl hover:bg-brand-600 transition-colors">
-                      ÁP DỤNG
-                    </button>
-                  </div>
-                  {promos && promos.length > 0 && (
-                    <div className="flex gap-3 overflow-x-auto pb-2 mt-3 snap-x scrollbar-hide">
-                      {promos.map(promo => {
-                        const isEligible = totalAmount >= (promo.minOrderValue || 0);
-                        const isSelected = discountCode.toUpperCase() === promo.code.toUpperCase();
-                        return (
-                          <div 
-                            key={promo._id} 
-                            onClick={() => {
-                              if (isEligible) {
-                                applyDiscount(promo.code);
-                              }
-                            }}
-                            className={`shrink-0 w-48 p-3 rounded-xl border snap-start transition-all cursor-pointer ${
-                              isSelected 
-                                ? 'border-brand-500 bg-brand-50 shadow-sm' 
-                                : isEligible 
-                                  ? 'border-brand-200 bg-white hover:border-brand-300' 
-                                  : 'border-stone-200 bg-stone-50 opacity-60 cursor-not-allowed'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded ${isSelected ? 'bg-brand-500 text-white' : (isEligible ? 'bg-brand-100 text-brand-700' : 'bg-stone-200 text-stone-500')}`}>
-                                {promo.code}
-                              </span>
-                            </div>
-                            <div className="text-sm font-bold text-stone-800 line-clamp-1">
-                              {promo.title || `Giảm ${promo.discountType === 'PERCENT' ? promo.discountValue + '%' : promo.discountValue?.toLocaleString('vi-VN') + 'đ'}`}
-                            </div>
-                            {promo.minOrderValue > 0 && (
-                              <div className="text-[10px] text-stone-500 mt-1">Đơn tối thiểu {promo.minOrderValue.toLocaleString('vi-VN')}đ</div>
-                            )}
-                          </div>
-                        );
-                      })}
+                  <button type="button" onClick={() => { setTempPromoCode(discountCode); setIsPromoModalOpen(true); }} className="w-full flex items-center justify-between p-4 bg-white border border-brand-200 rounded-xl hover:border-brand-500 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Ticket className={appliedPromo ? "text-brand-600" : "text-stone-400"} size={24} />
+                      <div className="flex flex-col items-start">
+                        <span className={`font-bold ${appliedPromo ? 'text-brand-700' : 'text-stone-500'}`}>
+                          {appliedPromo ? `Mã: ${appliedPromo.code}` : 'Chọn hoặc nhập mã'}
+                        </span>
+                        {appliedPromo && (
+                          <span className="text-xs text-brand-500 font-medium mt-0.5">Đã giảm {appliedPromo.discountAmount.toLocaleString('vi-VN')}đ</span>
+                        )}
+                      </div>
                     </div>
-                  )}
+                    <ChevronRight className="text-stone-400" size={20} />
+                  </button>
                   
                   <h3 className="font-bold text-brand-900 mt-6 mb-4">Hình thức nhận hàng</h3>
                   <div className="flex gap-2 mb-4 bg-brand-100 p-1.5 rounded-xl">
