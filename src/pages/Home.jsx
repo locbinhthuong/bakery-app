@@ -178,35 +178,37 @@ export default function Home() {
       </div>
 
       {/* Dynamic Ads Slider */}
-      <div className="px-4 mb-6 md:mb-12 mt-4 md:mt-0">
+      <div className="px-4 md:px-0 mb-6 md:mb-12 mt-4 md:mt-0">
         {adsPromos.length > 0 ? (
-          <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 snap-x snap-mandatory pb-2" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-0 snap-x snap-mandatory pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}>
             {adsPromos.map(promo => (
-              <div key={promo._id} className="min-w-full md:min-w-0 w-full aspect-video rounded-2xl overflow-hidden relative shadow-md hover:shadow-lg transition-shadow snap-center shrink-0">
+              <div key={promo._id} className="min-w-full md:min-w-0 w-full aspect-video rounded-2xl md:rounded-none overflow-hidden relative shadow-md hover:shadow-lg transition-shadow snap-center shrink-0">
                 <PromoSlider promo={promo} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-8">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-12">
                   <div className="flex gap-2">
                     <span className="text-[10px] md:text-xs font-bold bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full w-max mb-3 uppercase shadow-sm">Quảng Cáo</span>
                   </div>
-                  {promo.title && <h2 className="text-white font-serif text-2xl md:text-3xl lg:text-4xl font-bold mb-2 leading-tight drop-shadow-md">{promo.title}</h2>}
-                  {promo.content && <p className="text-stone-100 text-sm md:text-base font-medium line-clamp-2 md:line-clamp-3 drop-shadow-md max-w-3xl">{promo.content}</p>}
+                  {promo.title && <h2 className="text-white font-serif text-2xl md:text-4xl lg:text-5xl font-bold mb-2 leading-tight drop-shadow-md">{promo.title}</h2>}
+                  {promo.content && <p className="text-stone-100 text-sm md:text-lg font-medium line-clamp-2 md:line-clamp-3 drop-shadow-md max-w-3xl">{promo.content}</p>}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="w-full aspect-video md:aspect-[21/9] lg:aspect-[21/7] rounded-2xl md:rounded-[40px] overflow-hidden relative shadow-md">
+          <div className="w-full aspect-video md:aspect-[21/9] lg:aspect-[21/7] rounded-2xl md:rounded-none overflow-hidden relative shadow-md">
             <img src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?q=80&w=2000&auto=format&fit=crop" alt="Banner" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/80 via-brand-900/40 to-transparent flex flex-col justify-end p-6 md:p-12 lg:p-16">
-              <h2 className="text-white font-serif text-3xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 drop-shadow-lg">MABAE - Tiệm Bánh Donut</h2>
-              <p className="text-brand-50 text-sm md:text-xl lg:text-2xl font-medium drop-shadow-md max-w-2xl">Welcome to Mabae Donut - Where memories come alive with every Donuts! 🍩</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/80 via-brand-900/40 to-transparent flex flex-col justify-end p-6 md:p-16 lg:p-24 max-w-7xl mx-auto w-full md:px-12">
+              <h2 className="text-white font-serif text-3xl md:text-5xl lg:text-7xl font-bold mb-3 md:mb-6 drop-shadow-lg">MABAE - Tiệm Bánh Donut</h2>
+              <p className="text-brand-50 text-sm md:text-xl lg:text-3xl font-medium drop-shadow-md max-w-3xl">Welcome to Mabae Donut - Where memories come alive with every Donuts! 🍩</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Delivery Info Box */}
-      <div className="px-4 mb-8 md:mb-12">
+      {/* Main Content Wrapper for non-banner sections */}
+      <div className="max-w-7xl mx-auto w-full md:px-12">
+        {/* Delivery Info Box */}
+        <div className="px-4 md:px-0 mb-8 md:mb-12">
         <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow border border-brand-100 flex items-center gap-4 cursor-pointer">
           <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-100 rounded-xl md:rounded-2xl flex items-center justify-center text-brand-600 shrink-0">
             <img src="https://cdn-icons-png.flaticon.com/512/3063/3063822.png" alt="Delivery" className="w-8 h-8 md:w-10 md:h-10 opacity-70" style={{filter: 'sepia(1) hue-rotate(330deg) saturate(3)'}} />
@@ -302,6 +304,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

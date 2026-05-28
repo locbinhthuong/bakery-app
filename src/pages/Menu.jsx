@@ -153,7 +153,7 @@ export default function Menu() {
   };
 
   return (
-    <div className="pb-24 bg-brand-50 min-h-screen">
+    <div className="pb-24 md:pb-12 bg-brand-50 md:bg-transparent min-h-screen max-w-7xl mx-auto md:px-12 w-full">
       {/* Header */}
       <div className="sticky top-0 bg-brand-50 z-30 pt-12 pb-2 px-4 shadow-sm border-b border-brand-100 md:static md:pt-0 md:bg-transparent md:border-none md:shadow-none md:mb-6 md:px-0">
         <div className="flex justify-between items-center mb-4 min-h-[40px]">

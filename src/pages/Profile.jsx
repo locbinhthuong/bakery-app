@@ -251,7 +251,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="pb-24 md:pb-12 bg-brand-50 md:bg-transparent min-h-screen relative">
+    <div className="pb-24 md:pb-12 bg-brand-50 md:bg-transparent min-h-screen relative max-w-7xl mx-auto md:px-12 w-full">
       {/* Background Graphic */}
       <div className="h-40 md:h-64 bg-gradient-to-b from-brand-600/20 to-brand-50 md:to-transparent rounded-b-[40px] md:rounded-3xl md:mx-4 absolute top-0 w-full md:w-[calc(100%-2rem)] z-0"></div>
 

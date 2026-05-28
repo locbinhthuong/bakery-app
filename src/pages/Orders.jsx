@@ -63,7 +63,7 @@ export default function Orders() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-stone-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-stone-50 pb-20 md:pb-0 max-w-7xl mx-auto md:px-12 w-full">
       {/* Header */}
       <div className="bg-white px-4 py-4 sticky top-0 z-40 border-b border-stone-100 flex items-center shadow-sm">
         <Link to="/" className="p-2 -ml-2 mr-2 text-stone-500 hover:text-stone-800 transition-colors">
