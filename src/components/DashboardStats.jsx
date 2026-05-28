@@ -1,8 +1,30 @@
 import { useState, useMemo } from 'react';
-import { ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line } from 'recharts';
 import { ChevronLeft, ChevronRight, TrendingUp, DollarSign, ShoppingBag, XCircle } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Chart } from 'react-chartjs-2';
 
-export default function DashboardStats({ orders }) {
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export default function DashboardStats({ orders = [] }) {
   const [timeframe, setTimeframe] = useState('day'); // 'day', 'week', 'month', 'year'
   const [offset, setOffset] = useState(0); // 0 = current, 1 = previous, etc.
 
@@ -19,15 +41,12 @@ export default function DashboardStats({ orders }) {
       label = off === 0 ? 'Hôm nay' : off === 1 ? 'Hôm qua' : d.toLocaleDateString('vi-VN');
     } else if (tf === 'week') {
       const d = new Date(now);
-      // get Monday of current week
       const day = d.getDay() || 7; 
       d.setDate(d.getDate() - day + 1 - (off * 7));
       start = new Date(d.setHours(0, 0, 0, 0));
-      
       const e = new Date(start);
       e.setDate(e.getDate() + 6);
       end = new Date(e.setHours(23, 59, 59, 999));
-      
       label = `Tuần ${start.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'})} - ${end.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'})}`;
     } else if (tf === 'month') {
       const d = new Date(now.getFullYear(), now.getMonth() - off, 1);
@@ -46,19 +65,16 @@ export default function DashboardStats({ orders }) {
 
   const { start, end, label } = getPeriodRange(timeframe, offset);
 
-  // Filter orders in current period
   const periodOrders = useMemo(() => {
-    return orders.filter(o => {
+    return (orders || []).filter(o => {
       const orderDate = new Date(o.createdAt);
       return orderDate >= start && orderDate <= end;
     });
   }, [orders, start, end]);
 
-  // Calculate top-level stats
   const stats = useMemo(() => {
     const successful = periodOrders.filter(o => o.status === 'COMPLETED' || o.status === 'DELIVERED');
     const cancelled = periodOrders.filter(o => o.status === 'CANCELLED');
-    
     return {
       totalRevenue: successful.reduce((sum, o) => sum + (o.totalAmount || 0), 0),
       totalOrders: periodOrders.length,
@@ -67,44 +83,35 @@ export default function DashboardStats({ orders }) {
     };
   }, [periodOrders]);
 
-  // Calculate chart data (grouping by sub-periods)
   const chartData = useMemo(() => {
     const dataMap = new Map();
     const successful = periodOrders.filter(o => o.status === 'COMPLETED' || o.status === 'DELIVERED');
 
     if (timeframe === 'day') {
-      // group by hour
-      for (let i = 0; i < 24; i++) {
-        dataMap.set(i, { name: `${i}h`, revenue: 0, orders: 0 });
-      }
+      for (let i = 0; i < 24; i++) dataMap.set(i, { name: `${i}h`, revenue: 0, orders: 0 });
       successful.forEach(o => {
         const hour = new Date(o.createdAt).getHours();
         dataMap.get(hour).revenue += o.totalAmount;
         dataMap.get(hour).orders += 1;
       });
     } else if (timeframe === 'week') {
-      // group by day of week (Mon-Sun)
       const days = ['Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7', 'CN'];
       days.forEach(d => dataMap.set(d, { name: d, revenue: 0, orders: 0 }));
       successful.forEach(o => {
         let d = new Date(o.createdAt).getDay();
-        d = d === 0 ? 6 : d - 1; // 0 is Sunday -> index 6
+        d = d === 0 ? 6 : d - 1;
         dataMap.get(days[d]).revenue += o.totalAmount;
         dataMap.get(days[d]).orders += 1;
       });
     } else if (timeframe === 'month') {
-      // group by day of month
       const numDays = end.getDate();
-      for (let i = 1; i <= numDays; i++) {
-        dataMap.set(i, { name: `${i}`, revenue: 0, orders: 0 });
-      }
+      for (let i = 1; i <= numDays; i++) dataMap.set(i, { name: `${i}`, revenue: 0, orders: 0 });
       successful.forEach(o => {
         const date = new Date(o.createdAt).getDate();
         dataMap.get(date).revenue += o.totalAmount;
         dataMap.get(date).orders += 1;
       });
     } else if (timeframe === 'year') {
-      // group by month
       const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
       months.forEach(m => dataMap.set(m, { name: m, revenue: 0, orders: 0 }));
       successful.forEach(o => {
@@ -113,9 +120,64 @@ export default function DashboardStats({ orders }) {
         dataMap.get(months[month]).orders += 1;
       });
     }
-
     return Array.from(dataMap.values());
   }, [periodOrders, timeframe, end]);
+
+  const data = {
+    labels: chartData.map(d => d.name),
+    datasets: [
+      {
+        type: 'line',
+        label: 'Số đơn',
+        borderColor: '#3b82f6',
+        backgroundColor: '#3b82f6',
+        borderWidth: 3,
+        pointRadius: 4,
+        yAxisID: 'y1',
+        data: chartData.map(d => d.orders),
+      },
+      {
+        type: 'bar',
+        label: 'Doanh thu (₫)',
+        backgroundColor: '#d946ef',
+        borderRadius: 4,
+        yAxisID: 'y',
+        data: chartData.map(d => d.revenue),
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    scales: {
+      x: {
+        grid: { display: false }
+      },
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        grid: { borderDash: [3, 3] },
+        ticks: {
+          callback: function(value) {
+            return value > 0 ? (value / 1000) + 'k' : 0;
+          }
+        }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        grid: { display: false },
+        ticks: { precision: 0 }
+      },
+    },
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-4 md:p-6 mb-8 mt-2">
@@ -175,26 +237,8 @@ export default function DashboardStats({ orders }) {
         </div>
       </div>
 
-      <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f4" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#78716c' }} dy={10} />
-            <YAxis yAxisId="left" orientation="left" stroke="#d6d3d1" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#78716c' }} tickFormatter={(value) => value > 0 ? (value / 1000) + 'k' : 0} />
-            <YAxis yAxisId="right" orientation="right" stroke="#d6d3d1" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#78716c' }} />
-            <Tooltip 
-              cursor={{fill: '#fafaf9'}}
-              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              formatter={(value, name) => {
-                if (name === 'Doanh thu') return [value.toLocaleString('vi-VN') + ' ₫', name];
-                return [value + ' đơn', name];
-              }}
-            />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-            <Bar yAxisId="left" dataKey="revenue" name="Doanh thu" fill="#d946ef" radius={[4, 4, 0, 0]} maxBarSize={40} />
-            <Line yAxisId="right" type="monotone" dataKey="orders" name="Số đơn" stroke="#3b82f6" strokeWidth={3} dot={{r: 4}} />
-          </ComposedChart>
-        </ResponsiveContainer>
+      <div className="h-[300px] w-full relative">
+        <Chart type='bar' data={data} options={options} />
       </div>
     </div>
   );
