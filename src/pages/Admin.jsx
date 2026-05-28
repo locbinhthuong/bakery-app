@@ -1059,7 +1059,23 @@ export default function Admin() {
                      <span className="font-bold text-brand-600">{(i.price * i.quantity).toLocaleString('vi-VN')} ₫</span>
                    </div>
                  ))}
-                 <div className="flex justify-between pt-3 mt-2 border-t font-bold">
+                 {selectedOrder.discountCode && (
+                   <div className="flex justify-between py-2 border-b text-sm text-stone-600">
+                     <span>Khuyến mãi ({selectedOrder.discountCode})</span>
+                     <span className="text-brand-600 font-bold">-{selectedOrder.discountAmount?.toLocaleString('vi-VN')} ₫</span>
+                   </div>
+                 )}
+                 {selectedOrder.freeshipCode && (
+                   <div className="flex justify-between py-2 border-b text-sm text-stone-600">
+                     <span>Freeship ({selectedOrder.freeshipCode})</span>
+                     <span className="text-green-600 font-bold">-{selectedOrder.freeshipAmount?.toLocaleString('vi-VN')} ₫</span>
+                   </div>
+                 )}
+                 <div className="flex justify-between py-2 border-b text-sm text-stone-600">
+                   <span>Phí giao hàng dự kiến</span>
+                   <span className="font-bold">+{selectedOrder.shippingFee?.toLocaleString('vi-VN')} ₫</span>
+                 </div>
+                 <div className="flex justify-between pt-3 mt-2 font-bold text-lg">
                    <span>Tổng đơn</span>
                    <span className="text-brand-700">{selectedOrder.totalAmount.toLocaleString('vi-VN')} ₫</span>
                  </div>

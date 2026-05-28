@@ -86,7 +86,8 @@ export default function CustomerLayout() {
   const [pickupTime, setPickupTime] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [discountCode, setDiscountCode] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [appliedDiscountPromo, setAppliedDiscountPromo] = useState(null);
+  const [appliedFreeshipPromo, setAppliedFreeshipPromo] = useState(null);
   
   const [settings, setSettings] = useState(null);
   const [shippingConfig, setShippingConfig] = useState(null);
@@ -95,7 +96,9 @@ export default function CustomerLayout() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-  const [tempPromoCode, setTempPromoCode] = useState('');
+  const [tempDiscountCode, setTempDiscountCode] = useState('');
+  const [tempFreeshipCode, setTempFreeshipCode] = useState('');
+  const [manualCode, setManualCode] = useState('');
 
   const handleMapSearch = async (e) => {
     e.preventDefault();
@@ -271,18 +274,21 @@ export default function CustomerLayout() {
   }
 
   let actualDiscountAmount = 0;
-  if (appliedPromo) {
-    if (appliedPromo.discountType === 'FREESHIP') {
-      actualDiscountAmount = Math.min(appliedPromo.discountAmount, previewShippingFee);
-    } else {
-      actualDiscountAmount = Math.min(appliedPromo.discountAmount, totalAmount);
-    }
+  let actualFreeshipAmount = 0;
+  if (appliedDiscountPromo) {
+    actualDiscountAmount = Math.min(appliedDiscountPromo.discountAmount, totalAmount);
+  }
+  if (appliedFreeshipPromo) {
+    actualFreeshipAmount = Math.min(appliedFreeshipPromo.discountAmount, previewShippingFee);
   }
 
-  const finalAmount = totalAmount - actualDiscountAmount + previewShippingFee;
+  const finalAmount = totalAmount - actualDiscountAmount + previewShippingFee - actualFreeshipAmount;
 
   useEffect(() => {
-    if (cart.length === 0) setAppliedPromo(null);
+    if (cart.length === 0) {
+      setAppliedDiscountPromo(null);
+      setAppliedFreeshipPromo(null);
+    }
   }, [cart]);
 
   const applyDiscount = async (codeOverride) => {
@@ -304,14 +310,15 @@ export default function CustomerLayout() {
         totalAmount,
         customerPhone 
       });
-      setAppliedPromo(res.data.data);
-      if (typeof codeOverride === 'string') {
-        setDiscountCode(codeOverride); // Also update the input
+      const promoData = res.data.data;
+      if (promoData.discountType === 'FREESHIP') {
+        setAppliedFreeshipPromo(promoData);
+      } else {
+        setAppliedDiscountPromo(promoData);
       }
       return true;
     } catch (err) {
       alert(err.response?.data?.message || 'Mã ưu đãi không hợp lệ');
-      setAppliedPromo(null);
       return false;
     }
   };
@@ -346,14 +353,17 @@ export default function CustomerLayout() {
         note: formData.note,
         items: cart.map(i => ({ productId: i._id, name: i.name, price: i.price, quantity: i.quantity })),
         subTotal: totalAmount,
-        discountCode: appliedPromo ? appliedPromo.code : null,
+        discountCode: appliedDiscountPromo ? appliedDiscountPromo.code : null,
         discountAmount: actualDiscountAmount,
+        freeshipCode: appliedFreeshipPromo ? appliedFreeshipPromo.code : null,
+        freeshipAmount: actualFreeshipAmount,
         shippingFee: previewShippingFee,
         distanceKm: distanceKm
       });
       alert('Tuyệt vời! Đơn hàng của bạn đã được ghi nhận.');
       setCart([]);
-      setAppliedPromo(null);
+      setAppliedDiscountPromo(null);
+      setAppliedFreeshipPromo(null);
       setDiscountCode('');
       setIsCheckout(false);
       navigate('/menu'); 
@@ -499,10 +509,16 @@ export default function CustomerLayout() {
                       <span>Tạm tính</span>
                       <span>{totalAmount.toLocaleString('vi-VN')} ₫</span>
                     </div>
-                    {appliedPromo && (
+                    {appliedDiscountPromo && (
                       <div className="flex justify-between items-center text-brand-600 text-sm font-bold bg-brand-50 px-3 py-2 rounded-xl">
-                        <span>Khuyến mãi ({appliedPromo.code})</span>
+                        <span>Mã giảm giá ({appliedDiscountPromo.code})</span>
                         <span>-{actualDiscountAmount.toLocaleString('vi-VN')} ₫</span>
+                      </div>
+                    )}
+                    {appliedFreeshipPromo && (
+                      <div className="flex justify-between items-center text-green-600 text-sm font-bold bg-green-50 px-3 py-2 rounded-xl mt-1">
+                        <span>Freeship ({appliedFreeshipPromo.code})</span>
+                        <span>-{actualFreeshipAmount.toLocaleString('vi-VN')} ₫</span>
                       </div>
                     )}
                     {previewShippingFee > 0 && (
@@ -522,16 +538,22 @@ export default function CustomerLayout() {
               {cart.length > 0 && (
                 <form onSubmit={handleCheckout} className="space-y-4 pt-4">
                   <h3 className="font-bold text-brand-900 mb-2">Ưu đãi</h3>
-                  <button type="button" onClick={() => { setTempPromoCode(discountCode); setIsPromoModalOpen(true); }} className="w-full flex items-center justify-between p-4 bg-white border border-brand-200 rounded-xl hover:border-brand-500 transition-colors">
+                  <button type="button" onClick={() => { 
+                      setTempDiscountCode(appliedDiscountPromo ? appliedDiscountPromo.code : ''); 
+                      setTempFreeshipCode(appliedFreeshipPromo ? appliedFreeshipPromo.code : ''); 
+                      setIsPromoModalOpen(true); 
+                    }} className="w-full flex items-center justify-between p-4 bg-white border border-brand-200 rounded-xl hover:border-brand-500 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Ticket className={appliedPromo ? "text-brand-600" : "text-stone-400"} size={24} />
+                      <Ticket className={(appliedDiscountPromo || appliedFreeshipPromo) ? "text-brand-600" : "text-stone-400"} size={24} />
                       <div className="flex flex-col items-start">
-                        <span className={`font-bold ${appliedPromo ? 'text-brand-700' : 'text-stone-500'}`}>
-                          {appliedPromo ? `Mã: ${appliedPromo.code}` : 'Chọn hoặc nhập mã'}
+                        <span className={`font-bold ${(appliedDiscountPromo || appliedFreeshipPromo) ? 'text-brand-700' : 'text-stone-500'}`}>
+                          {(appliedDiscountPromo || appliedFreeshipPromo) ? `Đã chọn ${(appliedDiscountPromo && appliedFreeshipPromo) ? '2' : '1'} mã ưu đãi` : 'Chọn hoặc nhập mã'}
                         </span>
-                        {appliedPromo && (
+                        {(appliedDiscountPromo || appliedFreeshipPromo) && (
                           <span className="text-xs text-brand-500 font-medium mt-0.5">
-                            Đã giảm {actualDiscountAmount.toLocaleString('vi-VN')}đ
+                            {appliedDiscountPromo ? `Giảm ${actualDiscountAmount.toLocaleString('vi-VN')}đ` : ''}
+                            {(appliedDiscountPromo && appliedFreeshipPromo) ? ' & ' : ''}
+                            {appliedFreeshipPromo ? `Freeship ${actualFreeshipAmount.toLocaleString('vi-VN')}đ` : ''}
                           </span>
                         )}
                       </div>
@@ -755,12 +777,12 @@ export default function CustomerLayout() {
                   <input 
                     type="text" placeholder="Nhập mã..."
                     className="flex-1 px-4 py-3 bg-stone-50 border border-stone-200 focus:border-brand-500 rounded-xl outline-none font-medium uppercase"
-                    value={tempPromoCode} onChange={e => setTempPromoCode(e.target.value)}
+                    value={manualCode} onChange={e => setManualCode(e.target.value)}
                   />
                   <button type="button" onClick={async () => {
-                    if(tempPromoCode) {
-                      const success = await applyDiscount(tempPromoCode);
-                      if(success) setIsPromoModalOpen(false);
+                    if(manualCode) {
+                      await applyDiscount(manualCode);
+                      setManualCode('');
                     }
                   }} className="px-6 bg-brand-500 text-white font-bold rounded-xl hover:bg-brand-600">
                     ÁP DỤNG
@@ -773,13 +795,19 @@ export default function CustomerLayout() {
                {promos && promos.length > 0 ? (
                  promos.map(promo => {
                    const isEligible = totalAmount >= (promo.minOrderValue || 0);
-                   const isSelected = tempPromoCode.toUpperCase() === promo.code.toUpperCase();
+                   const isSelected = promo.discountType === 'FREESHIP' 
+                      ? tempFreeshipCode.toUpperCase() === promo.code.toUpperCase() 
+                      : tempDiscountCode.toUpperCase() === promo.code.toUpperCase();
                    return (
                      <div 
                         key={promo._id} 
                         onClick={() => {
                           if (isEligible) {
-                            setTempPromoCode(promo.code);
+                            if (promo.discountType === 'FREESHIP') {
+                              setTempFreeshipCode(isSelected ? '' : promo.code);
+                            } else {
+                              setTempDiscountCode(isSelected ? '' : promo.code);
+                            }
                           }
                         }}
                         className={`p-4 rounded-xl border transition-all cursor-pointer flex gap-4 items-center ${
@@ -822,12 +850,20 @@ export default function CustomerLayout() {
 
              <div className="p-4 bg-white border-t border-stone-100 shrink-0">
                <button onClick={async () => {
-                  if(tempPromoCode) {
-                    const success = await applyDiscount(tempPromoCode);
-                    if(success) setIsPromoModalOpen(false);
+                  let success = true;
+                  if(tempDiscountCode) {
+                    const ok = await applyDiscount(tempDiscountCode);
+                    if(!ok) success = false;
                   } else {
-                    setIsPromoModalOpen(false);
+                    setAppliedDiscountPromo(null);
                   }
+                  if(tempFreeshipCode) {
+                    const ok = await applyDiscount(tempFreeshipCode);
+                    if(!ok) success = false;
+                  } else {
+                    setAppliedFreeshipPromo(null);
+                  }
+                  if(success) setIsPromoModalOpen(false);
                }} className="w-full py-3.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">
                  Xác nhận
                </button>
