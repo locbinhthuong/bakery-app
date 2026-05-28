@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
+import { ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line } from 'recharts';
 import { ChevronLeft, ChevronRight, TrendingUp, DollarSign, ShoppingBag, XCircle } from 'lucide-react';
 
 export default function DashboardStats({ orders }) {
@@ -177,7 +177,7 @@ export default function DashboardStats({ orders }) {
 
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f4" />
             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#78716c' }} dy={10} />
             <YAxis yAxisId="left" orientation="left" stroke="#d6d3d1" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#78716c' }} tickFormatter={(value) => value > 0 ? (value / 1000) + 'k' : 0} />
@@ -193,7 +193,7 @@ export default function DashboardStats({ orders }) {
             <Legend wrapperStyle={{ paddingTop: '20px' }} />
             <Bar yAxisId="left" dataKey="revenue" name="Doanh thu" fill="#d946ef" radius={[4, 4, 0, 0]} maxBarSize={40} />
             <Line yAxisId="right" type="monotone" dataKey="orders" name="Số đơn" stroke="#3b82f6" strokeWidth={3} dot={{r: 4}} />
-          </BarChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </div>
