@@ -579,12 +579,12 @@ export default function CustomerLayout() {
                   <div className="space-y-3">
                     <input 
                       type="text" placeholder="Tên người nhận" required
-                      className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
+                      className="w-full px-4 py-3 bg-brand-50 border border-brand-200 focus:bg-white focus:border-brand-500 rounded-xl outline-none font-medium text-brand-900 transition-colors"
                       value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
                     />
                     <input 
                       type="tel" placeholder="Số điện thoại" required
-                      className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
+                      className="w-full px-4 py-3 bg-brand-50 border border-brand-200 focus:bg-white focus:border-brand-500 rounded-xl outline-none font-medium text-brand-900 transition-colors"
                       value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
                     />
                     
@@ -605,11 +605,11 @@ export default function CustomerLayout() {
 
                         {(!hasSavedLocation || addressOption === 'NEW') ? (
                           <>
-                            <input 
-                              type="text" placeholder="Địa chỉ giao hàng" required={(!hasSavedLocation || addressOption === 'NEW')}
-                              className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
+                            <textarea 
+                              rows="2" placeholder="Địa chỉ giao hàng" required={(!hasSavedLocation || addressOption === 'NEW')}
+                              className="w-full px-4 py-3 bg-brand-50 border border-brand-200 focus:bg-white focus:border-brand-500 rounded-xl outline-none font-medium text-brand-900 resize-none transition-colors"
                               value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})}
-                            />
+                            ></textarea>
                             
                             <button type="button" onClick={() => {
                               setIsMapOpen(true);
@@ -623,9 +623,9 @@ export default function CustomerLayout() {
                                   );
                                 }
                               }
-                            }} className="w-full flex items-center gap-2 justify-center py-3 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors">
-                              <Navigation size={18} className="text-brand-600"/> 
-                              {customerLocation ? 'Đã ghim vị trí (Sửa)' : 'Ghim vị trí nhận hàng (Tính ship)'}
+                            }} className="w-full flex items-center gap-2 justify-center py-2.5 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors text-sm">
+                              <Navigation size={16} className="text-brand-600"/> 
+                              {customerLocation ? 'Đã ghim vị trí trên bản đồ' : 'Ghim vị trí trên bản đồ (Tính ship)'}
                             </button>
                           </>
                         ) : (
