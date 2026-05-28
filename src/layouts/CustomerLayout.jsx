@@ -274,8 +274,9 @@ export default function CustomerLayout() {
     if (cart.length === 0) setAppliedPromo(null);
   }, [cart]);
 
-  const applyDiscount = async () => {
-    if (!discountCode) return alert('Vui lòng nhập mã ưu đãi');
+  const applyDiscount = async (codeOverride) => {
+    const codeToUse = typeof codeOverride === 'string' ? codeOverride : discountCode;
+    if (!codeToUse) return alert('Vui lòng nhập mã ưu đãi');
     try {
       let customerPhone = null;
       const savedCustomer = localStorage.getItem('bakery_customer');
@@ -285,11 +286,14 @@ export default function CustomerLayout() {
       }
       
       const res = await axios.post(`${BACKEND_URL}/promos/validate`, { 
-        code: discountCode.toUpperCase(), 
+        code: codeToUse.toUpperCase(), 
         totalAmount,
         customerPhone 
       });
       setAppliedPromo(res.data.data);
+      if (typeof codeOverride === 'string') {
+        setDiscountCode(codeOverride); // Also update the input
+      }
     } catch (err) {
       alert(err.response?.data?.message || 'Mã ưu đãi không hợp lệ');
       setAppliedPromo(null);
@@ -512,6 +516,43 @@ export default function CustomerLayout() {
                       ÁP DỤNG
                     </button>
                   </div>
+                  {promos && promos.length > 0 && (
+                    <div className="flex gap-3 overflow-x-auto pb-2 mt-3 snap-x scrollbar-hide">
+                      {promos.map(promo => {
+                        const isEligible = totalAmount >= (promo.minOrderValue || 0);
+                        const isSelected = discountCode.toUpperCase() === promo.code.toUpperCase();
+                        return (
+                          <div 
+                            key={promo._id} 
+                            onClick={() => {
+                              if (isEligible) {
+                                applyDiscount(promo.code);
+                              }
+                            }}
+                            className={`shrink-0 w-48 p-3 rounded-xl border snap-start transition-all cursor-pointer ${
+                              isSelected 
+                                ? 'border-brand-500 bg-brand-50 shadow-sm' 
+                                : isEligible 
+                                  ? 'border-brand-200 bg-white hover:border-brand-300' 
+                                  : 'border-stone-200 bg-stone-50 opacity-60 cursor-not-allowed'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded ${isSelected ? 'bg-brand-500 text-white' : (isEligible ? 'bg-brand-100 text-brand-700' : 'bg-stone-200 text-stone-500')}`}>
+                                {promo.code}
+                              </span>
+                            </div>
+                            <div className="text-sm font-bold text-stone-800 line-clamp-1">
+                              {promo.title || `Giảm ${promo.discountType === 'PERCENT' ? promo.discountValue + '%' : promo.discountValue?.toLocaleString('vi-VN') + 'đ'}`}
+                            </div>
+                            {promo.minOrderValue > 0 && (
+                              <div className="text-[10px] text-stone-500 mt-1">Đơn tối thiểu {promo.minOrderValue.toLocaleString('vi-VN')}đ</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   
                   <h3 className="font-bold text-brand-900 mt-6 mb-4">Hình thức nhận hàng</h3>
                   <div className="flex gap-2 mb-4 bg-brand-100 p-1.5 rounded-xl">
