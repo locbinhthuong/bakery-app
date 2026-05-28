@@ -270,7 +270,16 @@ export default function CustomerLayout() {
     }
   }
 
-  const finalAmount = totalAmount - (appliedPromo ? appliedPromo.discountAmount : 0) + previewShippingFee;
+  let actualDiscountAmount = 0;
+  if (appliedPromo) {
+    if (appliedPromo.discountType === 'FREESHIP') {
+      actualDiscountAmount = Math.min(appliedPromo.discountAmount, previewShippingFee);
+    } else {
+      actualDiscountAmount = Math.min(appliedPromo.discountAmount, totalAmount);
+    }
+  }
+
+  const finalAmount = totalAmount - actualDiscountAmount + previewShippingFee;
 
   useEffect(() => {
     if (cart.length === 0) setAppliedPromo(null);
@@ -338,7 +347,7 @@ export default function CustomerLayout() {
         items: cart.map(i => ({ productId: i._id, name: i.name, price: i.price, quantity: i.quantity })),
         subTotal: totalAmount,
         discountCode: appliedPromo ? appliedPromo.code : null,
-        discountAmount: appliedPromo ? appliedPromo.discountAmount : 0,
+        discountAmount: actualDiscountAmount,
         shippingFee: previewShippingFee,
         distanceKm: distanceKm
       });
@@ -493,7 +502,7 @@ export default function CustomerLayout() {
                     {appliedPromo && (
                       <div className="flex justify-between items-center text-brand-600 text-sm font-bold bg-brand-50 px-3 py-2 rounded-xl">
                         <span>Khuyến mãi ({appliedPromo.code})</span>
-                        <span>-{appliedPromo.discountAmount.toLocaleString('vi-VN')} ₫</span>
+                        <span>-{actualDiscountAmount.toLocaleString('vi-VN')} ₫</span>
                       </div>
                     )}
                     {previewShippingFee > 0 && (
@@ -521,7 +530,9 @@ export default function CustomerLayout() {
                           {appliedPromo ? `Mã: ${appliedPromo.code}` : 'Chọn hoặc nhập mã'}
                         </span>
                         {appliedPromo && (
-                          <span className="text-xs text-brand-500 font-medium mt-0.5">Đã giảm {appliedPromo.discountAmount.toLocaleString('vi-VN')}đ</span>
+                          <span className="text-xs text-brand-500 font-medium mt-0.5">
+                            Đã giảm {actualDiscountAmount.toLocaleString('vi-VN')}đ
+                          </span>
                         )}
                       </div>
                     </div>

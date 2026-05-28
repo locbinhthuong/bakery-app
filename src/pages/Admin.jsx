@@ -647,6 +647,7 @@ export default function Admin() {
                       <select name="discountType" className="px-4 py-2 bg-white border rounded-lg outline-none">
                         <option value="FIXED">Giảm số tiền cố định</option>
                         <option value="PERCENT">Giảm theo phần trăm</option>
+                        <option value="FREESHIP">Miễn phí vận chuyển</option>
                       </select>
                       <input name="discountValue" type="number" placeholder="Mức giảm (VD: 20000 hoặc 15)" required className="w-full px-4 py-2 bg-white border rounded-lg outline-none" />
                     </div>
