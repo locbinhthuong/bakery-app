@@ -5,6 +5,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import AddressPicker from '../components/AddressPicker';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -579,12 +580,12 @@ export default function CustomerLayout() {
                   <div className="space-y-3">
                     <input 
                       type="text" placeholder="Tên người nhận" required
-                      className="w-full px-4 py-3 bg-brand-50 border border-brand-200 focus:bg-white focus:border-brand-500 rounded-xl outline-none font-medium text-brand-900 transition-colors"
+                      className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
                       value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
                     />
                     <input 
                       type="tel" placeholder="Số điện thoại" required
-                      className="w-full px-4 py-3 bg-brand-50 border border-brand-200 focus:bg-white focus:border-brand-500 rounded-xl outline-none font-medium text-brand-900 transition-colors"
+                      className="w-full px-4 py-3 bg-white border border-brand-200 focus:border-brand-500 rounded-xl outline-none font-medium"
                       value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
                     />
                     
@@ -604,30 +605,13 @@ export default function CustomerLayout() {
                         )}
 
                         {(!hasSavedLocation || addressOption === 'NEW') ? (
-                          <>
-                            <textarea 
-                              rows="2" placeholder="Địa chỉ giao hàng" required={(!hasSavedLocation || addressOption === 'NEW')}
-                              className="w-full px-4 py-3 bg-brand-50 border border-brand-200 focus:bg-white focus:border-brand-500 rounded-xl outline-none font-medium text-brand-900 resize-none transition-colors"
-                              value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})}
-                            ></textarea>
-                            
-                            <button type="button" onClick={() => {
-                              setIsMapOpen(true);
-                              if (!customerLocation) {
-                                if (formData.address) autoGeocodeAddress(formData.address);
-                                if (navigator.geolocation) {
-                                  navigator.geolocation.getCurrentPosition(
-                                    (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                                    (err) => console.log('Lỗi định vị:', err),
-                                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                                  );
-                                }
-                              }
-                            }} className="w-full flex items-center gap-2 justify-center py-2.5 bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 hover:bg-stone-200 transition-colors text-sm">
-                              <Navigation size={16} className="text-brand-600"/> 
-                              {customerLocation ? 'Đã ghim vị trí trên bản đồ' : 'Ghim vị trí trên bản đồ (Tính ship)'}
-                            </button>
-                          </>
+                          <AddressPicker 
+                            address={formData.address}
+                            setAddress={(addr) => setFormData(prev => ({...prev, address: addr}))}
+                            location={customerLocation}
+                            setLocation={setCustomerLocation}
+                            defaultCenter={settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [10.810583, 106.709145]}
+                          />
                         ) : (
                           <div className="p-4 bg-brand-50 rounded-xl border border-brand-100 flex items-start gap-3">
                             <MapPin size={20} className="text-brand-600 shrink-0 mt-0.5" />
@@ -669,75 +653,7 @@ export default function CustomerLayout() {
         </div>
       )}
 
-      {/* Map Picker Modal */}
-      {isMapOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onClick={() => setIsMapOpen(false)}></div>
-          <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-             <div className="p-4 border-b border-stone-100 flex justify-between items-center bg-white">
-               <h2 className="text-lg font-bold text-stone-900">Ghim Vị Trí Nhận Hàng</h2>
-               <button onClick={() => setIsMapOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-800"><X size={18}/></button>
-             </div>
-             
-             <div className="p-3 bg-stone-50 border-b border-stone-100">
-               <form onSubmit={handleMapSearch} className="flex gap-2">
-                 <input 
-                   type="text" 
-                   placeholder="Tìm kiếm địa chỉ..." 
-                   className="flex-1 px-3 py-2 text-sm border border-stone-200 rounded-lg outline-none focus:border-brand-500"
-                   value={searchQuery}
-                   onChange={e => setSearchQuery(e.target.value)}
-                 />
-                 <button type="submit" className="px-3 py-2 bg-brand-500 text-white rounded-lg flex items-center justify-center hover:bg-brand-600">
-                   <Search size={16} />
-                 </button>
-               </form>
-               {searchResults.length > 0 && (
-                 <div className="absolute z-[1000] left-0 right-0 top-[110px] mx-4 max-h-48 overflow-y-auto bg-white border border-stone-200 shadow-xl rounded-lg">
-                   {searchResults.map((res, i) => (
-                     <div 
-                       key={i} 
-                       className="p-3 text-sm border-b border-stone-100 cursor-pointer hover:bg-brand-50"
-                       onClick={() => {
-                         const latlng = { lat: parseFloat(res.lat), lng: parseFloat(res.lon) };
-                         setCustomerLocation(latlng);
-                         setFormData(prev => ({...prev, address: res.display_name}));
-                         setSearchResults([]);
-                         setSearchQuery('');
-                       }}
-                     >
-                       {res.display_name}
-                     </div>
-                   ))}
-                 </div>
-               )}
-             </div>
 
-             <div className="p-2 bg-stone-50 text-[11px] text-stone-500 font-medium text-center">
-               Bạn có thể tìm kiếm, chạm vào bản đồ hoặc kéo thả ghim để chọn chính xác điểm giao.
-             </div>
-             <div className="h-[50vh] w-full relative z-0">
-                <MapContainer center={(customerLocation && customerLocation.lat !== undefined && customerLocation.lat !== null) ? [customerLocation.lat, customerLocation.lng] : (settings?.storeLocation ? [settings.storeLocation.lat, settings.storeLocation.lng] : [10.810583, 106.709145])} zoom={15} style={{ height: '100%', width: '100%' }}>
-                  <TileLayer url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" attribution="&copy; Google Maps" />
-                  <MapUpdater center={customerLocation} />
-                  <LocationMarker 
-                    position={customerLocation} 
-                    setPosition={setCustomerLocation} 
-                    setFormData={setFormData}
-                  />
-                </MapContainer>
-             </div>
-             {customerLocation && shippingConfig && distanceKm > 0 && (
-               <div className="px-4 pt-4 text-center text-sm font-bold text-brand-700">
-                 Khoảng cách: {distanceKm.toFixed(1)} km - Phí ship dự kiến: {previewShippingFee.toLocaleString('vi-VN')} ₫
-               </div>
-             )}
-             <div className="p-4 bg-white border-t border-stone-100">
-               <button onClick={() => setIsMapOpen(false)} className="w-full py-3.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700">Xác nhận vị trí</button>
-             </div>
-          </div>
-        </div>
-      )}
 
       {/* Mobile Bottom Navigation - Phê La Style */}
       <div 
