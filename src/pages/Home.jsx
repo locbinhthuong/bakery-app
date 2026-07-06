@@ -57,7 +57,7 @@ export default function Home() {
     const fetchOrders = async () => {
       try {
         if (customer && customer.phone) {
-          const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
+          const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : import.meta.env.VITE_BACKEND_URL;
           const res = await axios.get(`${BACKEND_URL}/customer/orders/${customer.phone}`);
           setMyOrders(res.data.data);
         }

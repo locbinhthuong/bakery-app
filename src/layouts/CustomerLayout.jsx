@@ -73,7 +73,7 @@ function MapUpdater({ center }) {
   return null;
 }
 
-const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : import.meta.env.VITE_BACKEND_URL;
 
 export default function CustomerLayout() {
   const [products, setProducts] = useState([]);

@@ -22,7 +22,7 @@ export default function Menu() {
         if (savedCustomer) {
           const cust = JSON.parse(savedCustomer);
           if (cust.phone) {
-            const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : 'https://bakery-backend-six.vercel.app/api/shop';
+            const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5001/api/shop' : import.meta.env.VITE_BACKEND_URL;
             const res = await axios.get(`${BACKEND_URL}/customer/orders/${cust.phone}`);
             setMyOrders(res.data.data);
           }
